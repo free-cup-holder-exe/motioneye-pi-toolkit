@@ -1,6 +1,6 @@
 # motioneye-notify
 
-motion runs motionEye's email and Telegram senders from the camera's `on_event_start` command and throws away their output, so a failed alert leaves no trace. This wrapper runs the sender, classifies the outcome and logs one line per attempt:
+motion runs motionEye's email and Telegram senders from the camera's `on_event_start` command, and their output is not kept: motionEye 0.44 writes it to motion's log, which is emptied every time motion starts, and current dev discards it when syslog is available. So a failed alert leaves no lasting trace. This wrapper runs the sender, classifies the outcome and logs one line per attempt:
 
 ```
 moteye-mail: result=sent rc=0 secs=15 pics=4
