@@ -1,6 +1,6 @@
 # motioneye-pi-toolkit
 
-Tools and field notes for running [motionEye](https://github.com/motioneye-project/motioneye) on Raspberry Pi cameras with ribbon (CSI) camera modules, from a small home setup of five Pis: three Pi 4s, a Pi Zero 2 W and a Pi Zero W.
+Tools and field notes for running [motionEye](https://github.com/motioneye-project/motioneye) on Raspberry Pi cameras, mostly with ribbon (CSI) camera modules, from a small home setup of five Pis: three Pi 4s and a Pi Zero 2 W with ribbon cameras, and a Pi Zero W with a USB webcam.
 
 Everything here was built to fix a real problem on those cameras and is still running on them. The notes say what worked, what did not, and what is still unknown.
 
@@ -47,7 +47,7 @@ Investigations:
 
 ## Tested with
 
-Raspberry Pi OS 13 (Trixie), Python 3.13, motion 4.7.x, motionEye 0.44.0 and the 0.45.0 development builds, Picamera2 from the Raspberry Pi OS packages, OV5647 and IMX219 camera modules.
+Raspberry Pi OS 13 (Trixie), Python 3.13, motion 4.7.x, motionEye 0.44.0 and the 0.45.0 development builds, Picamera2 from the Raspberry Pi OS packages, OV5647 and IMX219 camera modules, and a Logitech C615 USB webcam.
 
 ## Before you use anything
 
