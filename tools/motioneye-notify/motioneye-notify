@@ -1,7 +1,8 @@
 #!/bin/bash
 # Record the OUTCOME of a motionEye notification send.
-# motion discards the senders' stdout/stderr, so a failed notification leaves no
-# trace at all. This logs one line per attempt via syslog.
+# The senders' output is not kept: motionEye 0.44 writes it to motion's log, which is
+# emptied every time motion starts, and current dev discards it when syslog is available.
+# This logs one line per attempt via syslog.
 #
 # SECURITY: classification, plus ONE redacted error line on failures only. Older
 # command lines carry the SMTP password and Telegram token in argv, so never log
