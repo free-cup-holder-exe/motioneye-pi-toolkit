@@ -1,4 +1,6 @@
 #!/bin/bash
+# motioneye-pi-toolkit: https://github.com/free-cup-holder-exe/motioneye-pi-toolkit
+# SPDX-License-Identifier: MIT
 # cam-watchdog: recover the CSI camera bridge when the picture stays dark.
 # Dark = the bridge (picam-mjpeg) logged "camera stalled" or "no first frame" and no
 # "first frame captured" since. On one camera the bridge logged "camera stalled ...

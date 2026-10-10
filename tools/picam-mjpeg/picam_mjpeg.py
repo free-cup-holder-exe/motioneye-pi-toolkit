@@ -1,4 +1,6 @@
 #!/usr/bin/python3
+# motioneye-pi-toolkit: https://github.com/free-cup-holder-exe/motioneye-pi-toolkit
+# SPDX-License-Identifier: MIT
 """MJPEG HTTP server for a Raspberry Pi CSI camera, used by motionEye as a network camera.
 
 Picamera2 captures through libcamera's ISP (lens shading, white balance, exact frame

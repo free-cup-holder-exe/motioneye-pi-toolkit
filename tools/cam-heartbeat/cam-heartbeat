@@ -1,4 +1,6 @@
 #!/bin/bash
+# motioneye-pi-toolkit: https://github.com/free-cup-holder-exe/motioneye-pi-toolkit
+# SPDX-License-Identifier: MIT
 # One syslog line per minute (from root's crontab): proves the OS was alive and shows
 # temperature, throttling, load and free memory at any moment, including the last
 # minute before a crash. Needs a persistent journal (see tools/journald).

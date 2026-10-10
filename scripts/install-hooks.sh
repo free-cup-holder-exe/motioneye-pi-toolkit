@@ -1,4 +1,6 @@
 #!/bin/bash
+# motioneye-pi-toolkit: https://github.com/free-cup-holder-exe/motioneye-pi-toolkit
+# SPDX-License-Identifier: MIT
 # Install a pre-commit hook that runs scripts/scrub-check.sh on the files being committed.
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 HOOK=$ROOT/.git/hooks/pre-commit

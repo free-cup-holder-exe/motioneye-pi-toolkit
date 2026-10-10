@@ -1,3 +1,5 @@
+# motioneye-pi-toolkit: https://github.com/free-cup-holder-exe/motioneye-pi-toolkit
+# SPDX-License-Identifier: MIT
 [Unit]
 Description=Restart the CSI camera bridge, or reboot, when the picture stays dark
 After=picam-mjpeg.service

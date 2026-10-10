@@ -1,4 +1,6 @@
 #!/bin/bash
+# motioneye-pi-toolkit: https://github.com/free-cup-holder-exe/motioneye-pi-toolkit
+# SPDX-License-Identifier: MIT
 # Read-only health check for a motionEye camera Pi. Changes nothing, prints no secrets.
 # On the Pi:   sudo bash health-check.sh ['YYYY-MM-DD HH:MM']        (default: the last 24 h)
 # Over ssh:    ssh admin@cam 'sudo bash -s -- "2026-10-07 21:00"' < health-check.sh

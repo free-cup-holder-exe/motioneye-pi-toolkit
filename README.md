@@ -4,6 +4,36 @@ Tools and field notes for running [motionEye](https://github.com/motioneye-proje
 
 Everything here was built to fix a real problem on those cameras and is still running on them. The notes say what worked, what did not, and what is still unknown.
 
+## Getting started (new to Linux?)
+
+You need a Raspberry Pi running Raspberry Pi OS with motionEye already working, and a computer on the same network.
+
+1. **Connect to the Pi.** On Windows open PowerShell, on a Mac or Linux open a terminal, and type `ssh <user>@<pi-address>`, for example `ssh admin@192.0.2.10`. Everything below runs on the Pi. Commands that start with `sudo` run as the administrator and may ask for your password.
+
+2. **Download the toolkit.** No git needed:
+
+   ```sh
+   cd ~
+   wget -O motioneye-pi-toolkit.tar.gz https://github.com/free-cup-holder-exe/motioneye-pi-toolkit/archive/refs/heads/main.tar.gz
+   tar -xzf motioneye-pi-toolkit.tar.gz
+   cd motioneye-pi-toolkit-main
+   ```
+
+   The install commands in the tool pages assume you are in this folder.
+
+3. **Install one tool at a time, in this order,** and check each one works before the next:
+   1. [Keep logs across reboots](tools/journald): without it, everything from before a crash is lost.
+   2. [Heartbeat](tools/cam-heartbeat): one line a minute that proves the Pi was alive.
+   3. [Health check](tools/health-check): run it to see where your camera stands. It changes nothing.
+   4. [Alert logging](tools/motioneye-notify): if you use email or Telegram alerts.
+   5. Only for ribbon (CSI) cameras: the [MJPEG bridge](tools/picam-mjpeg), then the [dark-camera watchdog](tools/cam-watchdog).
+
+   The other two are for specific problems, so read their page first: [Wi-Fi power save](tools/wifi-powersave-off) and [canary builds](tools/canary).
+
+4. **If something goes wrong,** every tool page ends with an **Undo** section. To read the logs: `sudo journalctl -e` shows the latest system log, and `sudo journalctl -u motioneye -e` shows motionEye's.
+
+A few words you will meet: `sudo` runs a command as the administrator, `systemctl` starts, stops and enables services, `journalctl` reads the logs, and `crontab` holds scheduled jobs.
+
 ## Tools
 
 | Tool | What it does |

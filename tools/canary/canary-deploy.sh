@@ -1,4 +1,6 @@
 #!/bin/bash
+# motioneye-pi-toolkit: https://github.com/free-cup-holder-exe/motioneye-pi-toolkit
+# SPDX-License-Identifier: MIT
 # Install a motionEye wheel (e.g. built from the dev branch) on one camera, with a backup first.
 # Copy the wheel to /tmp on the Pi, then run this ON the Pi:
 #   scp motioneye-0.45.0a1.dev2026100701-py3-none-any.whl admin@cam:/tmp/

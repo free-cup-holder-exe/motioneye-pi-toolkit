@@ -1,3 +1,5 @@
+# motioneye-pi-toolkit: https://github.com/free-cup-holder-exe/motioneye-pi-toolkit
+# SPDX-License-Identifier: MIT
 [Unit]
 Description=CSI camera MJPEG stream (source for motionEye)
 After=network.target

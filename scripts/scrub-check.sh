@@ -1,4 +1,6 @@
 #!/bin/bash
+# motioneye-pi-toolkit: https://github.com/free-cup-holder-exe/motioneye-pi-toolkit
+# SPDX-License-Identifier: MIT
 # Refuse to publish private identifiers. Scans the repo's text files (or the files given)
 # for generic patterns (private IPs, MAC addresses, email addresses, Telegram tokens,
 # passwords piped into sudo, private keys) and for every string in a PRIVATE denylist

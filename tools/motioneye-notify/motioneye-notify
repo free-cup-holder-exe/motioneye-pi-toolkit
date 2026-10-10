@@ -1,4 +1,6 @@
 #!/bin/bash
+# motioneye-pi-toolkit: https://github.com/free-cup-holder-exe/motioneye-pi-toolkit
+# SPDX-License-Identifier: MIT
 # Record the OUTCOME of a motionEye notification send.
 # The senders' output is not kept: motionEye 0.44 writes it to motion's log, which is
 # emptied every time motion starts, and current dev discards it when syslog is available.

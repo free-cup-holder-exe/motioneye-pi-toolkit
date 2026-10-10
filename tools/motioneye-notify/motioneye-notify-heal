@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# motioneye-pi-toolkit: https://github.com/free-cup-holder-exe/motioneye-pi-toolkit
+# SPDX-License-Identifier: MIT
 """Ensure the motioneye-notify wrapper prefixes each notification command in
 on_event_start, for every camera conf on this box.
 
