@@ -18,4 +18,4 @@ echo "alerts: mail[$(J -t moteye-mail | grep -oE 'result=[a-z-]+|pics=[0-9]+' | 
 echo "alert errors: $(J -t moteye-mail -t moteye-tg | grep -c 'error=')"
 echo "bridge: stalls=$(J -u picam-mjpeg 2>/dev/null | grep -c 'camera stalled') no_first_frame=$(J -u picam-mjpeg 2>/dev/null | grep -c 'no first frame') active=$(systemctl is-active picam-mjpeg 2>/dev/null) | watchdog actions: $(J -t cam-watchdog | wc -l)"
 echo "media since $SINCE: movies=$(find /var/lib/motioneye -name '*.mp4' -newermt "$SINCE" 2>/dev/null | wc -l) pictures=$(find /var/lib/motioneye -name '*.jpg' -newermt "$SINCE" 2>/dev/null | wc -l)"
-echo "kernel warnings since $SINCE: $(journalctl -k --since "$SINCE" --no-pager -q -o cat | grep -ciE 'under-voltage|brcmf|error|fail')"
+echo "kernel warnings since $SINCE: $(journalctl -k --since "$SINCE" --no-pager -q -o cat | grep -ciE 'under-?voltage|brcmf|error|fail')"
