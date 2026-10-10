@@ -1,0 +1,60 @@
+# motioneye-pi-toolkit
+
+Tools and field notes for running [motionEye](https://github.com/motioneye-project/motioneye) on Raspberry Pi cameras with ribbon (CSI) camera modules, from a small home setup of five Pis: three Pi 4s, a Pi Zero 2 W and a Pi Zero W.
+
+Everything here was built to fix a real problem on those cameras and is still running on them. The notes say what worked, what did not, and what is still unknown.
+
+## Tools
+
+| Tool | What it does |
+|---|---|
+| [`tools/picam-mjpeg`](tools/picam-mjpeg) | Serves a CSI camera as an MJPEG stream (libcamera ISP + hardware JPEG) for motionEye to use as a network camera; exits for a restart when the camera stalls |
+| [`tools/cam-watchdog`](tools/cam-watchdog) | If the picture stays dark: restarts the bridge, then reboots (max 3 per day) |
+| [`tools/motioneye-notify`](tools/motioneye-notify) | Logs the outcome of every email/Telegram alert (and a redacted reason on failure); a heal script re-adds it after motionEye rewrites the command |
+| [`tools/cam-heartbeat`](tools/cam-heartbeat) | One journal line a minute: temperature, throttling, load, free memory |
+| [`tools/journald`](tools/journald) | Keeps the journal across reboots on Raspberry Pi OS |
+| [`tools/wifi-powersave-off`](tools/wifi-powersave-off) | Turns Wi-Fi power save off at boot |
+| [`tools/health-check`](tools/health-check) | Read-only status report for one camera |
+| [`tools/canary`](tools/canary) | Installs a motionEye build from the dev branch on one camera, with a backup |
+
+## Docs
+
+Troubleshooting, by symptom:
+
+- [Camera picture freezes or goes dark](docs/troubleshooting/camera-goes-dark.md)
+- [Alerts not arriving](docs/troubleshooting/alerts-not-arriving.md)
+- [Alerts arrive without pictures](docs/troubleshooting/alerts-missing-pictures.md)
+- [Disk filling up](docs/troubleshooting/disk-filling-up.md)
+- [Random reboots](docs/troubleshooting/random-reboots.md)
+- [Camera unreachable but the Pi is alive (Wi-Fi)](docs/troubleshooting/wifi-drops.md)
+
+How-to:
+
+- [CSI camera through an MJPEG bridge](docs/howto/csi-camera-mjpeg-bridge.md)
+- [Log what happens to every alert](docs/howto/log-notification-outcomes.md)
+- [Keep logs across reboots](docs/howto/persistent-journal.md)
+- [A one-minute heartbeat](docs/howto/heartbeat.md)
+- [Safe nightly updates](docs/howto/nightly-updates.md)
+- [Test motionEye's dev branch on one camera](docs/howto/canary-testing-dev.md)
+- [Health checks](docs/howto/health-checks.md)
+
+Investigations:
+
+- [Software vs hardware H.264 encoding on a Pi Zero 2 W](docs/investigations/pi-zero-2w-software-encoding.md)
+- [Python 3.14 and the cleanup that deleted nothing](docs/investigations/python-3.14-forkserver.md)
+
+[Fixes contributed to motionEye from this setup](docs/upstream-fixes.md): all merged into the dev branch, shipping in 0.45.0.
+
+## Tested with
+
+Raspberry Pi OS 13 (Trixie), Python 3.13, motion 4.7.x, motionEye 0.44.0 and the 0.45.0 development builds, Picamera2 from the Raspberry Pi OS packages, OV5647 and IMX219 camera modules.
+
+## Before you use anything
+
+- Try it on one camera first. The scripts assume motionEye's defaults: config in `/etc/motioneye`, media in `/var/lib/motioneye`, web UI on port 8765, an admin user with `sudo`.
+- Camera names (`cam-a` … `cam-e`), addresses (`192.0.2.x`) and host names (`example.com`) in the docs are placeholders.
+- No warranty; see [LICENSE](LICENSE) (MIT).
+
+## Contributing to this repo
+
+Before committing, run `scripts/scrub-check.sh` (or install it as a pre-commit hook with `scripts/install-hooks.sh`). It refuses private IPs, MAC and email addresses, tokens and anything on your own private denylist, which you keep outside the repo (`~/.config/motioneye-pi-toolkit/denylist.txt`).

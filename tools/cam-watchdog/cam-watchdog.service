@@ -1,0 +1,7 @@
+[Unit]
+Description=Restart the CSI camera bridge, or reboot, when the picture stays dark
+After=picam-mjpeg.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/cam-watchdog

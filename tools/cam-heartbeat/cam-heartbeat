@@ -1,0 +1,9 @@
+#!/bin/bash
+# One syslog line per minute (from root's crontab): proves the OS was alive and shows
+# temperature, throttling, load and free memory at any moment, including the last
+# minute before a crash. Needs a persistent journal (see tools/journald).
+T=$(vcgencmd measure_temp 2>/dev/null | grep -o '[0-9.]*')
+TH=$(vcgencmd get_throttled 2>/dev/null | cut -d= -f2)
+L=$(cut -d' ' -f1-3 /proc/loadavg)
+M=$(free -m | awk '/^Mem:/{print $7}')
+logger -t cam-heartbeat "temp=${T}C throttled=${TH} load=${L} memavail=${M}MB"

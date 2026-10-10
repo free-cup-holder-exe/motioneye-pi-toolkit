@@ -1,0 +1,9 @@
+# never commit a scrub denylist or local notes
+*denylist*
+.local/
+__pycache__/
+*.pyc
+*.whl
+canary-build/
+canary-wheel/
+canary.tar

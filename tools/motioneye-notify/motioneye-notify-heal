@@ -1,0 +1,61 @@
+#!/usr/bin/env python3
+"""Ensure the motioneye-notify wrapper prefixes each notification command in
+on_event_start, for every camera conf on this box.
+
+motionEye rewrites on_event_start whenever notification settings are saved,
+which drops the wrapper and silently ends notification logging. This restores
+it. Robust to whitespace and command ordering; never prints file content
+(on_event_start carries the SMTP password and the Telegram bot token).
+"""
+import glob
+import os
+import subprocess
+import syslog
+
+WRAP = '/usr/local/sbin/motioneye-notify'
+TAGS = [
+    ('meyectl.py sendmail', 'moteye-mail'),
+    ('meyectl.py sendtelegram', 'moteye-tg'),
+]
+
+changed = []
+for conf in sorted(glob.glob('/etc/motioneye/camera-*.conf')):
+    try:
+        with open(conf, encoding='utf-8', errors='surrogateescape') as fh:
+            lines = fh.readlines()
+    except OSError:
+        continue
+
+    dirty = False
+    for i, line in enumerate(lines):
+        if not line.startswith('on_event_start'):
+            continue
+        key, _, rest = line.partition(' ')
+        segs = rest.rstrip('\n').split(';')
+        for j, seg in enumerate(segs):
+            for needle, tag in TAGS:
+                if needle in seg and WRAP not in seg:
+                    stripped = seg.lstrip()
+                    pad = seg[: len(seg) - len(stripped)]
+                    segs[j] = f'{pad}{WRAP} {tag} {stripped}'
+                    dirty = True
+        if dirty:
+            lines[i] = f'{key} {";".join(segs)}\n'
+
+    if dirty:
+        tmp = conf + '.healtmp'
+        with open(tmp, 'w', encoding='utf-8', errors='surrogateescape') as fh:
+            fh.writelines(lines)
+        st = os.stat(conf)
+        os.chmod(tmp, st.st_mode)
+        os.chown(tmp, st.st_uid, st.st_gid)
+        os.replace(tmp, conf)
+        changed.append(os.path.basename(conf))
+
+if changed:
+    syslog.openlog('moteye-heal')
+    syslog.syslog('rewired notify wrapper in: ' + ' '.join(changed))
+    subprocess.run(['systemctl', 'restart', 'motioneye'], check=False)
+    print('REWIRED: ' + ' '.join(changed))
+else:
+    print('NOCHANGE')

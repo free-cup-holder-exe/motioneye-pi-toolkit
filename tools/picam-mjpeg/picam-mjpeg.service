@@ -1,0 +1,13 @@
+[Unit]
+Description=CSI camera MJPEG stream (source for motionEye)
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/python3 /usr/local/bin/picam_mjpeg.py
+Restart=on-failure
+RestartSec=3
+# Frame size and rate: override in a drop-in (systemctl edit picam-mjpeg), e.g.
+# Environment=PICAM_WIDTH=1640 PICAM_HEIGHT=1232 PICAM_FPS=5
+
+[Install]
+WantedBy=multi-user.target

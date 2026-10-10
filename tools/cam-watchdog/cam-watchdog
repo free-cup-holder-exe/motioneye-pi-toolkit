@@ -1,0 +1,64 @@
+#!/bin/bash
+# cam-watchdog: recover the CSI camera bridge when the picture stays dark.
+# Dark = the bridge (picam-mjpeg) logged "camera stalled" or "no first frame" and no
+# "first frame captured" since. On one camera the bridge logged "camera stalled ...
+# exiting" but the process only went away 24 min later, so after DARK_MAX s dark: kill
+# and restart the bridge; if still dark DARK_MAX s after that: reboot, at most
+# REBOOT_MAX times per 24 h.
+# Runs every minute from cam-watchdog.timer (first run 10 min after boot).
+# Test: DRYRUN=1 EVENTS_FILE=<journalctl -o short-unix lines> STATE_DIR=<dir> NOW=<epoch>
+UNIT=picam-mjpeg
+DARK_MAX=${DARK_MAX:-180}
+REBOOT_MAX=${REBOOT_MAX:-3}
+STATE=${STATE_DIR:-/var/lib/cam-watchdog}
+NOW=${NOW:-$(date +%s)}
+
+say() {
+    if [ -n "$DRYRUN" ]; then echo "$*"; else logger -t cam-watchdog "$*"; fi
+}
+
+# a bridge stopped on purpose is left alone
+if [ -z "$EVENTS_FILE" ] && [ "$(systemctl is-active $UNIT)" = inactive ]; then exit 0; fi
+mkdir -p "$STATE"
+
+if [ -n "$EVENTS_FILE" ]; then
+    EVENTS=$(cat "$EVENTS_FILE")
+else
+    EVENTS=$(journalctl -u $UNIT -b --no-pager -q -o short-unix)
+fi
+# start of the current dark spell: the first failure after the last captured frame (0 = picture ok)
+SINCE=$(printf '%s\n' "$EVENTS" | awk '/first frame captured/ {s = 0} /camera stalled|no first frame/ && !s {s = int($1)} END {print s + 0}')
+if [ "$SINCE" -eq 0 ]; then
+    rm -f "$STATE/restarted" "$STATE/limit"
+    exit 0
+fi
+DARK=$((NOW - SINCE))
+if [ "$DARK" -lt "$DARK_MAX" ]; then exit 0; fi
+
+R_SINCE=; R_AT=0
+if [ -f "$STATE/restarted" ]; then read -r R_SINCE R_AT < "$STATE/restarted"; fi
+if [ "$R_SINCE" != "$SINCE" ]; then
+    say "dark ${DARK}s since $(date -d "@$SINCE" '+%F %T'): killing and restarting $UNIT"
+    echo "$SINCE $NOW" > "$STATE/restarted"
+    if [ -z "$DRYRUN" ]; then
+        systemctl kill -s KILL $UNIT
+        sleep 5
+        systemctl reset-failed $UNIT
+        systemctl start $UNIT
+    fi
+    exit 0
+fi
+if [ $((NOW - R_AT)) -lt "$DARK_MAX" ]; then exit 0; fi
+
+touch "$STATE/reboots"
+RECENT=$(awk -v t=$((NOW - 86400)) '$1 > t' "$STATE/reboots" | wc -l)
+if [ "$RECENT" -ge "$REBOOT_MAX" ]; then
+    if [ "$(cat "$STATE/limit" 2>/dev/null)" != "$SINCE" ]; then
+        say "dark ${DARK}s and still dark after the bridge restart, but $RECENT reboots in 24 h: limit reached, not rebooting"
+        echo "$SINCE" > "$STATE/limit"
+    fi
+    exit 0
+fi
+say "dark ${DARK}s, still dark $((NOW - R_AT))s after the bridge restart: rebooting ($((RECENT + 1))/$REBOOT_MAX in 24 h)"
+echo "$NOW" >> "$STATE/reboots"
+if [ -z "$DRYRUN" ]; then systemctl reboot; fi

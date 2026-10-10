@@ -1,0 +1,78 @@
+#!/bin/bash
+# Record the OUTCOME of a motionEye notification send.
+# motion discards the senders' stdout/stderr, so a failed notification leaves no
+# trace at all. This logs one line per attempt via syslog.
+#
+# SECURITY: classification, plus ONE redacted error line on failures only. Older
+# command lines carry the SMTP password and Telegram token in argv, so never log
+# raw output: quoted values, addresses, URLs, tokens, IPs, host names and long
+# numbers are masked. NEVER add -d: debug mode prints an argparse Namespace
+# containing the Telegram API key in full.
+#
+# pics=N is the count of pictures inside the same +/-timespan window the sender
+# uses, so a silent drop in attachments is visible without raising motionEye's
+# log level (which would write the Telegram token to the journal every send).
+# It is a count only - no filenames, no content.
+TAG="$1"; shift
+START=$(date +%s)
+OUT=$("$@" 2>&1); RC=$?
+DUR=$(( $(date +%s) - START ))
+
+case "$OUT" in
+    *"email sent"*|*"telegram sent"*)          R=sent ;;
+    *"timeout waiting for the media listing"*) R=listing-timeout ;;
+    *NoneType*)                                R=crash-nonetype ;;
+    *"failed to send"*|*"Connection refused"*) R=send-failed ;;
+    *)                                         R=unknown ;;
+esac
+
+# --- attachment count (fails safe to "-") ---
+PICS=-
+MOMENT="${@: -2:1}"
+SPAN="${@: -1}"
+case "$SPAN" in ''|*[!0-9]*) SPAN= ;; esac
+# short form (motionEye #3426: "... sendmail %t MOMENT", time span in the camera
+# config): the camera conf is the %t-th "camera" line of motion.conf
+if [ -z "$SPAN" ] && date -d "${@: -1}" >/dev/null 2>&1; then
+    MOMENT="${@: -1}"; TID="${@: -2:1}"
+    case "$TAG" in moteye-mail) KIND=email ;; moteye-tg) KIND=telegram ;; *) KIND= ;; esac
+    case "$TID" in ''|*[!0-9]*) TID= ;; esac
+    if [ -n "$KIND" ] && [ -n "$TID" ]; then
+        CONF=$(awk '$1 == "camera" {print $2}' /etc/motioneye/motion.conf 2>/dev/null | sed -n "${TID}p")
+        case "$CONF" in /*|'') ;; *) CONF=/etc/motioneye/$CONF ;; esac
+        SPAN=$(awk -v k="@${KIND}_notifications_picture_time_span" '$1 == "#" && $2 == k {print $3}' "$CONF" 2>/dev/null)
+        case "$SPAN" in ''|*[!0-9]*) SPAN= ;; esac
+    fi
+fi
+if [ -n "$SPAN" ] && [ -n "$MOMENT" ]; then
+    EPOCH=$(date -d "$MOMENT" +%s 2>/dev/null)
+    if [ -n "$EPOCH" ]; then
+        LO=$(date -d "@$((EPOCH - SPAN))" '+%Y-%m-%d %H:%M:%S' 2>/dev/null)
+        HI=$(date -d "@$((EPOCH + SPAN))" '+%Y-%m-%d %H:%M:%S' 2>/dev/null)
+        D1=$(date -d "@$((EPOCH - SPAN))" '+%Y-%m-%d' 2>/dev/null)
+        D2=$(date -d "@$((EPOCH + SPAN))" '+%Y-%m-%d' 2>/dev/null)
+        # scope to the one or two day folders the window spans, not the whole tree
+        DIRS=$(ls -d /var/lib/motioneye/*/"$D1" /var/lib/motioneye/*/"$D2" 2>/dev/null | sort -u)
+        if [ -n "$LO" ] && [ -n "$HI" ] && [ -n "$DIRS" ]; then
+            N=$(find $DIRS -maxdepth 1 -name '*.jpg' -newermt "$LO" ! -newermt "$HI" 2>/dev/null | wc -l)
+            case "$N" in ''|*[!0-9]*) ;; *) PICS=$N ;; esac
+        fi
+    fi
+fi
+
+logger -t "$TAG" "result=$R rc=$RC secs=$DUR pics=$PICS"
+
+# --- failures only: the sender's error and the exception that ended its traceback, redacted ---
+if [ "$R" != sent ]; then
+    ERR=$(printf '%s\n' "$OUT" | grep -E '(ERROR|CRITICAL): |^[A-Za-z_][A-Za-z0-9_.]*: ' | grep -v '^Traceback' \
+        | sed -E 's/^.*(ERROR|CRITICAL): //' | sed -n '1p;$p' | uniq | tr '\n' '|' | sed -E \
+            -e "s/'[^']*'/<v>/g" -e 's/"[^"]*"/<v>/g' \
+            -e 's/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+/<addr>/g' \
+            -e 's#[A-Za-z][A-Za-z0-9+.-]*://[^ |]+#<url>#g' \
+            -e 's/[0-9]{6,}:[A-Za-z0-9_-]{20,}/<token>/g' \
+            -e 's/[0-9]{1,3}(\.[0-9]{1,3}){3}/<ip>/g' \
+            -e 's/[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)*\.(com|net|org|io|co|uk|us|de|ca|info|biz|me|dev|app|cloud|local|lan|home|arpa)\b/<host>/g' \
+            -e 's/[0-9]{6,}/<n>/g' -e 's/\|$//' | cut -c1-300)
+    [ -n "$ERR" ] && logger -t "$TAG" "error=$ERR"
+fi
+exit 0
