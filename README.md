@@ -57,6 +57,7 @@ Troubleshooting, by symptom:
 - [Disk filling up](docs/troubleshooting/disk-filling-up.md)
 - [Random reboots](docs/troubleshooting/random-reboots.md)
 - [Camera unreachable but the Pi is alive (Wi-Fi)](docs/troubleshooting/wifi-drops.md)
+- [Adding a camera fails, hangs or accepts a wrong password](docs/troubleshooting/adding-a-camera.md)
 
 How-to:
 
@@ -73,7 +74,7 @@ Investigations:
 - [Software vs hardware H.264 encoding on a Pi Zero 2 W](docs/investigations/pi-zero-2w-software-encoding.md)
 - [Python 3.14 and the cleanup that deleted nothing](docs/investigations/python-3.14-forkserver.md)
 
-[Fixes contributed to motionEye from this setup](docs/upstream-fixes.md): all merged into the dev branch, shipping in 0.45.0.
+[Fixes contributed to motionEye from this setup](docs/upstream-fixes.md): 13 merged into the dev branch for 0.45.0, three more in review.
 
 ## Tested with
 
