@@ -4,9 +4,9 @@ Sixteen fixes to [motionEye](https://github.com/motioneye-project/motioneye)
 came out of running this setup. Most started as a problem seen on these
 cameras. Some (#3416, #3443, #3444, #3445) started from other users' reports.
 
-**Status:** 13 are merged into motionEye's `dev` branch and planned for the
-next release, **0.45.0**. The three about adding cameras are open pull
-requests. None of them are in 0.44.0.
+**Status:** 15 are merged into motionEye's `dev` branch and planned for the
+next release, **0.45.0**. One (#3445) is an open pull request. None of them
+are in 0.44.0.
 
 ## Notifications
 
@@ -29,8 +29,8 @@ requests. None of them are in 0.44.0.
 
 | PR | What changes for you | Status |
 |---|---|---|
-| [#3443](https://github.com/motioneye-project/motioneye/pull/3443) | Adding an `http://` network camera or simple MJPEG camera that can't be used (offline, mistyped host, no answer, or a stream that is not HTTP) shows the reason within seconds. Before, the dialog kept waiting for minutes. A working camera no longer leaves an `Exception in callback ... on_response()` traceback in the log, and a failed check is logged. motionEye's log lines for the check leave out the URL's query, which some cameras use for their login. | open, approved |
-| [#3444](https://github.com/motioneye-project/motioneye/pull/3444) | Adding an `rtsp://` camera that does not answer reports "timeout connecting to rtsp netcam" after 10 s, instead of "failed to connect" after about 2 minutes with a `TypeError` in the log. A camera that answers 401 without naming its login type gets an answer after 1 s instead of none. | open |
+| [#3443](https://github.com/motioneye-project/motioneye/pull/3443) | Adding an `http://` network camera or simple MJPEG camera that can't be used (offline, mistyped host, no answer, or a stream that is not HTTP) shows the reason within seconds. Before, the dialog kept waiting for minutes. A working camera no longer leaves an `Exception in callback ... on_response()` traceback in the log, and a failed check is logged. motionEye's log lines for the check leave out the URL's query, which some cameras use for their login. | merged into dev 2026-10-11 |
+| [#3444](https://github.com/motioneye-project/motioneye/pull/3444) | Adding an `rtsp://` camera that does not answer reports "timeout connecting to rtsp netcam" after 10 s, instead of "failed to connect" after about 2 minutes with a `TypeError` in the log. A camera that answers 401 without naming its login type gets an answer after 1 s instead of none. | merged into dev 2026-10-11 |
 | [#3445](https://github.com/motioneye-project/motioneye/pull/3445) | Adding an `rtsp://` camera with a Basic login checks the password again: a wrong one gives "authentication failed". Before, the camera was listed as found and then showed a grey picture. This worked in 0.42.1 and broke in the Python 3 port. It only helps cameras that ask for the login on the first request (`OPTIONS`); for cameras that only ask later, a wrong password still passes. Digest logins are still not checked. | open |
 
 Until these ship, [Adding a camera fails, hangs or accepts a wrong password](troubleshooting/adding-a-camera.md) shows how to check a camera yourself.
@@ -89,7 +89,7 @@ Notes from the PR descriptions:
 
 ## Getting them before 0.45.0
 
-The 13 merged ones are on `dev` today; the three open ones are not yet. To
+The 15 merged ones are on `dev` today; #3445 is not yet. To
 run `dev` before the release, see the
 [canary testing guide](howto/canary-testing-dev.md). Start with one camera
 you can afford to lose for a while, and keep a way back to the release you

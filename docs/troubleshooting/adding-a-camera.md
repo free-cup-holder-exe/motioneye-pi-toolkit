@@ -20,7 +20,7 @@ motionEye checks a camera's URL before it adds the camera. In 0.43 and 0.44 that
 | RTSP takes 2 minutes | the 10 s timeout crashes, so the dialog waits until the operating system gives up the connection | [#3444](https://github.com/motioneye-project/motioneye/pull/3444) |
 | any RTSP password accepted | for cameras with a Basic login the password is never sent, so it is never checked. motion then fails to log in. Digest logins are not checked at all. | [#3445](https://github.com/motioneye-project/motioneye/pull/3445) (Basic only, and only for cameras that ask for the login on the first request) |
 
-All three are open pull requests (see [upstream fixes](../upstream-fixes.md)). Underneath, the camera itself is usually unreachable, not HTTP, or the password is wrong. The checks below find out which.
+#3443 and #3444 are merged into motionEye's `dev` branch for 0.45.0; #3445 is still an open pull request (see [upstream fixes](../upstream-fixes.md)). Underneath, the camera itself is usually unreachable, not HTTP, or the password is wrong. The checks below find out which.
 
 On motionEye 0.43, a password with special characters such as `#` also broke motion's connection to the camera. 0.44.0 fixed that ([#3296](https://github.com/motioneye-project/motioneye/pull/3296)). For a camera added under 0.43, enter its password again after upgrading, so 0.44 stores it in the fixed form.
 
