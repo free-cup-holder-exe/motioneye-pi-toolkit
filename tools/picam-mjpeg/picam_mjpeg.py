@@ -10,7 +10,10 @@ motionEye reads http://127.0.0.1:8080/stream.mjpg.
 Settings (environment variables, e.g. from a systemd drop-in):
   PICAM_WIDTH, PICAM_HEIGHT  frame size (default 1280x960)
   PICAM_FPS                  frame rate (default 5)
-  PICAM_BIND, PICAM_PORT     listen address (default 127.0.0.1:8080)
+  PICAM_BIND, PICAM_PORT     listen address (default 127.0.0.1:8080); the stream has no
+                             password, so only use 0.0.0.0 on a network you trust
+  PICAM_AF                   autofocus: continuous (default) or off; only cameras with
+                             autofocus (e.g. Camera Module 3) are affected
 
 The process exits, so systemd restarts it, when no first frame arrives within 30 s or
 when frames stop for more than 20 s: a stalled camera otherwise keeps serving the last
@@ -33,6 +36,7 @@ WIDTH = int(os.environ.get("PICAM_WIDTH", 1280))
 HEIGHT = int(os.environ.get("PICAM_HEIGHT", 960))
 FPS = float(os.environ.get("PICAM_FPS", 5))
 BIND = (os.environ.get("PICAM_BIND", "127.0.0.1"), int(os.environ.get("PICAM_PORT", 8080)))
+AF = os.environ.get("PICAM_AF", "continuous")
 
 
 class StreamingOutput(io.BufferedIOBase):
@@ -101,6 +105,17 @@ picam2.configure(
 )
 output = StreamingOutput()
 picam2.start_recording(MJPEGEncoder(), FileOutput(output))
+
+# rpicam-vid refocuses continuously by default; Picamera2 does not, so ask for it
+if "AfMode" not in picam2.camera_controls:
+    logging.info("autofocus: not available on this camera")
+elif AF == "continuous":
+    from libcamera import controls
+
+    picam2.set_controls({"AfMode": controls.AfModeEnum.Continuous})
+    logging.info("autofocus: continuous")
+else:
+    logging.info("autofocus: off (PICAM_AF=%s)", AF)
 
 with output.condition:
     # a sensor that never delivers must not hang us here forever

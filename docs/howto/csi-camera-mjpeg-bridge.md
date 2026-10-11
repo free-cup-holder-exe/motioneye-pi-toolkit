@@ -19,19 +19,30 @@ Through Picamera2 the picture goes through the ISP. It comes out at the exact si
 
 That chain works, but ffmpeg converts the pixels in software. On a Pi Zero 2 W it used about 2.5 of the 4 cores. The bridge uses Picamera2's `MJPEGEncoder`, which runs on the Pi's hardware JPEG encoder. On the same Zero 2 W the bridge uses about 13% of one core.
 
+### Why not rpicam-vid --listen -o tcp://?
+
+`rpicam-vid --codec mjpeg --listen -o tcp://0.0.0.0:8080` looks like a ready-made network stream, but motion and motionEye cannot use it. We tested it with motion 4.7.1 and rpicam-apps 1.13 (see motionEye issue [#3288](https://github.com/motioneye-project/motioneye/issues/3288)):
+
+- **It is not HTTP.** rpicam-vid sends bare JPEG frames without an HTTP response, so motionEye's "add network camera" check cannot accept it, and `mjpeg://` URLs fail in motion ("Failed to read first camera header").
+- **It serves one client, once.** rpicam-vid accepts a single connection and quits when that client disconnects (`failed to send data on socket`). motion always opens the stream, reads a frame, closes it and opens it again, so by its second connection rpicam-vid is gone and motion shows its grey "no picture" image.
+
+Restarting rpicam-vid in a loop makes motion's `http://` and `tcp://` URLs work, but then only one client can watch, every motion restart restarts the camera, and motionEye still cannot add the camera. The bridge speaks real HTTP, serves any number of clients and keeps the camera open.
+
 ### Built-in safety
 
 - **No first frame:** if the camera delivers nothing within 30 s of start, the bridge logs `no first frame within 30s, exiting for systemd restart` and exits. Before this was added, one bridge waited about 20 hours for a frame after a sensor error.
 - **Stall:** a watchdog thread checks every 10 s. If no new frame arrived for more than 20 s, it logs `camera stalled >20s, exiting for systemd restart` and exits. Without it, a camera that stopped delivering ("Camera frontend has timed out" from libcamera) left the server alive, serving one frozen frame. One camera sat like that for about 20 hours.
 - **Restart:** the unit has `Restart=on-failure` and `RestartSec=3`, so systemd starts the bridge again 3 s after either exit.
 - **Dead clients:** each client connection times out after 15 s. Without this, motion's reconnects left hundreds of half-closed sockets behind until Python could not start new threads and the feed died (after about two days on a Zero 2 W).
-- **Local only:** by default the server listens on 127.0.0.1, not on the network.
+- **Local only:** by default the server listens on 127.0.0.1, not on the network. To feed motionEye on another computer, see [motionEye on another machine](#motioneye-on-another-machine).
 
 Known limit: once, the bridge logged "camera stalled ... exiting" and then hung for about 24 minutes before it actually exited (most likely stuck in the camera driver). systemd cannot restart a process that has not exited. Pair the bridge with `tools/cam-watchdog`, which kills and restarts the bridge after 3 minutes without a picture and reboots if that does not help (at most 3 reboots per 24 hours). See [Camera picture freezes or goes dark](../troubleshooting/camera-goes-dark.md).
 
 ### What we did not test
 
 motion has its own libcamera support. We did not test it. All our CSI cameras run this bridge.
+
+Autofocus cameras such as the Camera Module 3: the bridge switches autofocus to continuous (`PICAM_AF`, see below), like `rpicam-vid` does by default. We have no Camera Module 3, so we have only checked that cameras without autofocus are not affected.
 
 ## Requirements
 
@@ -51,7 +62,7 @@ sudo install -m 755 -o root -g root tools/picam-mjpeg/picam_mjpeg.py /usr/local/
 sudo install -m 644 -o root -g root tools/picam-mjpeg/picam-mjpeg.service /etc/systemd/system/picam-mjpeg.service
 ```
 
-Set the size, frame rate and port in a systemd drop-in. The script's built-in defaults (1280x960, 5 fps, 127.0.0.1:8080) are at the top of the file.
+Set the size, frame rate and port in a systemd drop-in. The script's built-in defaults (1280x960, 5 fps, 127.0.0.1:8080, continuous autofocus where the camera has it) are at the top of the file.
 
 ```sh
 sudo mkdir -p /etc/systemd/system/picam-mjpeg.service.d
@@ -76,6 +87,14 @@ Then add the camera in motionEye. In the web UI, add a camera of type **Network 
 
 If you used the raw `/dev/video0` device or a loopback service before, remove that camera and disable the old service. `libcamerify` in motionEye's unit is not needed with the bridge.
 
+## motionEye on another machine
+
+The bridge can also feed motionEye on a different computer, for example a camera-only Pi feeding motionEye on a Pi 4. Add `PICAM_BIND=0.0.0.0` to the drop-in's `Environment=` line, then `sudo systemctl daemon-reload` and `sudo systemctl restart picam-mjpeg`. In that motionEye, add a **Network Camera** with the URL `http://<camera-pi-address>:8080/stream.mjpg`.
+
+The stream has no password. Anyone who can reach port 8080 on the camera Pi can watch it, so only do this on a network you trust, or allow the port only from the motionEye machine with a firewall rule. Several clients can watch at once (motion plus a browser, for example).
+
+motion decodes every frame it receives, so keep the frame rate modest; 5 to 10 fps is plenty for motion detection.
+
 ## Check it works
 
 ```sh
@@ -83,7 +102,7 @@ systemctl is-active picam-mjpeg
 sudo journalctl -u picam-mjpeg -n 5 --no-pager
 ```
 
-The log should end with `first frame captured; streaming on http://127.0.0.1:8080/stream.mjpg`. This usually takes 3 to 7 seconds.
+The log should end with `first frame captured; streaming on http://127.0.0.1:8080/stream.mjpg`. This usually takes 3 to 7 seconds. Just before it, `autofocus: ...` says whether the camera has autofocus and how it is set.
 
 Check that frames flow (more than 10000 bytes means yes):
 
