@@ -25,7 +25,7 @@ Below is a generic example. Read the notes before you adapt it.
 | System Python | `/usr/local/lib/python3.13/dist-packages`, `meyectl` in `/usr/local/bin` | `python3 -m pip install --upgrade --break-system-packages motioneye` |
 | venv | `/opt/motioneye` | `/opt/motioneye/bin/pip install --upgrade motioneye` |
 
-Check with `systemctl cat motioneye | grep ExecStart`. If it runs `/opt/motioneye/bin/meyectl`, you have the venv. In our setup cam-a to cam-d use system Python and cam-e uses the venv.
+Check with `systemctl cat motioneye | grep ExecStart`. If it runs `/opt/motioneye/bin/meyectl`, you have the venv. In our setup all four cameras, cam-a to cam-d, use system Python. None uses the venv.
 
 System Python needs `--break-system-packages` because Trixie marks it as externally managed. Never copy an update script from one flavour to the other. The system-Python line on a venv box installs a second, unused copy. The running service never updates, and nothing tells you.
 
@@ -92,7 +92,7 @@ Step 5 belongs to [alert logging](log-notification-outcomes.md). Leave it in; it
 
 ### Notes
 
-- **Stagger and stage.** Do not update every camera in the same minute. One night a single Wi-Fi package update took three of our five cameras offline at once, and then they could not download the fixed package. Update one camera first (see [Canary testing](canary-testing-dev.md)), or at least spread the times.
+- **Stagger and stage.** Do not update every camera in the same minute. One night a single Wi-Fi package update took three of our cameras offline at once, and then they could not download the fixed package. Update one camera first (see [Canary testing](canary-testing-dev.md)), or at least spread the times.
 - **Kernels.** `apt-get upgrade` holds back new kernel packages; `full-upgrade` installs them. We do kernel updates by hand, one camera at a time.
 - **Clock.** A Pi has no real-time clock. After time offline its clock can be wrong, and apt then rejects the repository files as "not valid yet". Make sure the time is synced before apt runs.
 - **By hand over ssh,** run long apt jobs detached (`setsid nohup ...`) so a dropped session does not kill them. An interrupted download is harmless. An interrupted unpack or configure is not.
@@ -139,7 +139,7 @@ sudo /usr/local/sbin/nightly-update
 sudo journalctl -t nightly-update --since today --no-pager
 ```
 
-Expect `web=200 motion_procs=1`. On a slow board (Pi Zero W) motionEye needs 20-30 s to answer after a start. The script polls for about a minute, so a quick probe returning `000` is not a failure.
+Expect `web=200 motion_procs=1`. On a slow board motionEye takes longer to come up. On our Pi Zero 2 W (cam-d) it took 15-18 s from start to "server started" in the journal (15 starts over 7 days), against about 4.5-5 s on our Pi 4s. The script polls for about a minute, so a quick probe returning `000` is not a failure.
 
 ## Undo
 

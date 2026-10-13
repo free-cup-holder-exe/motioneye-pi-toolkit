@@ -23,7 +23,7 @@ pictures per alert ≈ (2 × time span) ÷ snapshot interval
 
 Seen here:
 
-- cam-e (Pi Zero W) took a snapshot every 30 s, to cut the number of files on a slow board. Over 7 days it sent 225 alerts: 74 with no picture and 151 with one.
+- cam-a to cam-d all use interval snapshots (`picture_output off`) every 5 s, with a 10 s time span. Over 7 days (2026-10-06 to 2026-10-13) the wrapper logged 992 email alerts. 987 had exactly 4 pictures, and none had 0 or 1. The Telegram counts were the same within 2 alerts per camera.
 - cam-d (Pi Zero 2 W) was once moved from 5 s to 30 s to make the picture listing faster. Its alerts dropped to one picture, and the moving thing was no longer visible. It went back to 5 s the next day. The listing had enough headroom anyway.
 
 ### The "one picture per event" trap
@@ -72,25 +72,34 @@ sudo find /var/lib/motioneye -name '*.jpg' -newermt '-60 sec' -printf '%TT %f\n'
 
 ### Option A: shorter snapshot interval (used here)
 
-cam-e went from 30 s to 10 s on 2026-10-04. Change it in the UI (the camera's Still Images section), or on the command line:
+All four cameras here take a snapshot every 5 s. cam-d went back to 5 s after its one day at 30 s. Change it in the UI (the camera's Still Images section), or on the command line:
 
 ```sh
 C=/etc/motioneye/camera-1.conf
 sudo cp -p $C $C.bak-$(date +%Y%m%d-%H%M%S)
-sudo sed -i 's/^snapshot_interval 30$/snapshot_interval 10/' $C
+sudo sed -i 's/^snapshot_interval 30$/snapshot_interval 5/' $C
 sudo grep '^snapshot_interval' $C
 sudo systemctl restart motioneye
 ```
 
-A Pi Zero W can take about 30 s to serve the web UI again after the restart.
+After the restart, motionEye logs `server started` in the journal after about 4.5-5 s on the Pi 4s here (once 7.2 s). On cam-d (Pi Zero 2 W) it took 15-18 s, over 15 starts in 7 days.
 
-Result on cam-e in the first 24 hours: 85 alerts, 81 with 2 pictures, 4 with 1, none with 0. Before the change, a third of its alerts had no picture.
+Result over 7 days at 5 s (2026-10-06 to 2026-10-13), email alerts, as counted by the wrapper (`pics=`):
+
+| Camera | Alerts | With 4 pictures | Others |
+|---|---|---|---|
+| cam-a (Pi 4) | 303 | 299 | 2 with 5, 1 with 3, 1 with 2 |
+| cam-b (Pi 4) | 81 | 81 | none |
+| cam-c (Pi 4) | 45 | 45 | none |
+| cam-d (Pi Zero 2 W) | 563 | 562 | 1 with 5 |
+| All four | 992 | 987 | 3 with 5, 1 with 3, 1 with 2 |
+
+None had 0 or 1 picture. On its one day at 30 s, cam-d's alerts had one picture.
 
 Cost:
 
-- Three times as many stills: 8,640 a day instead of 2,880. That means more disk use, and bigger day folders, so a slower picture listing on slow boards.
-- cam-e's load stayed about the same (about 0.9).
-- cam-e's reboot rate looked higher after the change: about 10.5 a day, against about 8 a day before. But its rate swings between 7 and 13 a day, so this is not proven. A test back at 30 s started on 2026-10-09 and was still running at the time of writing. See [Random reboots](./random-reboots.md).
+- Six times as many stills as at 30 s: about 17,250 a day per camera here (86,400 ÷ 5 = 17,280), instead of 2,880. That means more disk use, and bigger day folders, so a slower picture listing on slow boards.
+- Load at 5 s over 7 days, from the 1-minute load in the [heartbeat](../howto/heartbeat.md) log (one sample a minute): median 0.18-0.34 and 90th percentile 0.60-0.66 on the three Pi 4s, median 0.45 and 90th percentile 0.90 on cam-d (Pi Zero 2 W, 4 cores). Short spikes reached about 9-12 on all four. We have no load numbers at 30 s to compare.
 
 If the number of files is the problem, keep pictures for fewer days instead of taking fewer pictures. cam-d's picture retention (`@preserve_pictures`) went from 7 days to 3. That does not change the pictures per alert.
 
@@ -106,15 +115,15 @@ Cost: the pictures are further from the moment of motion, and every alert is sen
 
 ## Verify
 
-- After some real events, run the `pics=` summary again, starting from the time of the change (for example `--since "2026-10-04 12:45"`). At a 10 s interval and ±10 s, expect mostly `pics=2`.
-- Check with the `find` command above that stills are saved every 10 s.
+- After some real events, run the `pics=` summary again, starting from the time of the change (for example `--since "2026-10-06 00:00"`). At a 5 s interval and ±10 s, expect mostly `pics=4`.
+- Check with the `find` command above that stills are saved every 5 s.
 - Open an alert and check that you can see the movement.
 
 ## Limits and open questions
 
 - `pics=` is counted by the wrapper from files on disk in the window. It is not read from the sender, so it does not prove the pictures were attached. If the listing timed out, the alert can have fewer pictures than `pics=` says.
 - The count looks in `/var/lib/motioneye/*/<day>` for all cameras on the Pi. With more than one local camera, the counts are mixed. With a different media path it always shows `-`.
-- The formula assumes interval snapshots only. Where the event falls between two snapshots can change the count by one (cam-e at 10 s: 81 of 85 alerts had 2, 4 had 1).
-- The link between 10 s snapshots and cam-e's reboots is not proven.
+- The formula assumes interval snapshots only. Where the event falls between two snapshots can change the count by one (at 5 s here: 987 of 992 alerts had 4, 3 had 5, 1 had 3). One cam-a alert had only 2, which the formula does not explain.
 - Option B was not tested here.
-- The numbers come from cam-e over a few days and from cam-d over one day.
+- The 5 s numbers come from four cameras over 7 days. The 30 s numbers come from cam-d over one day, when its alerts had one picture. The 0 in the 30 s row comes from the formula. The 10 s row in the table comes from the formula, not from a test here.
+- The load cost of 5 s against 30 s is not measured. We have load numbers at 5 s only.

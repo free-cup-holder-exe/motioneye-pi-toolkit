@@ -75,7 +75,7 @@ Use the boot index (`-b -1`), not wall-clock times. A Pi has no real-time clock.
 
 ### Is 200 MB enough?
 
-It depends on how chatty the box is. On a camera with a lot of log traffic (it was rebooting many times a day), 200 MB held only about two days. Check how far back you can go with `journalctl --list-boots`. If you need more, raise `SystemMaxUse` in the same drop-in file (not in `journald.conf`) and restart journald.
+It depends on how chatty the box is. Check how far back you can go with `journalctl --list-boots`. If you need more, raise `SystemMaxUse` in the same drop-in file (not in `journald.conf`) and restart journald.
 
 ## Undo
 
@@ -89,4 +89,4 @@ The journal goes back to RAM. The old files stay in `/var/log/journal`. Delete t
 ## Related
 
 - [Log a heartbeat every minute](heartbeat.md)
-- [Random reboots](../troubleshooting/random-reboots.md)
+- [Wi-Fi drops](../troubleshooting/wifi-drops.md)

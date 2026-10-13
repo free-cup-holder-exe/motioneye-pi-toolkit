@@ -98,7 +98,7 @@ If the other camera sent fine in the same minutes, through the same server and p
   - `failed to send mail: [Errno -3] Temporary failure in name resolution` (`socket.gaierror`) after 24 s
 - So the quick mail-only failures were DNS lookups of the mail server failing, and the long ones were connections dropping: cam-a's network, not the sender code.
 
-An earlier case on cam-a was clearer. Two events failed on both channels after 74-82 s, while cam-d and cam-e sent fine in the same minutes. No network lines were logged at all, which fits cam-a's known silent Wi-Fi drops.
+An earlier case on cam-a was clearer. Two events failed on both channels after 74-82 s, while cam-d sent fine in the same minutes. No network lines were logged at all, which fits cam-a's known silent Wi-Fi drops.
 
 ## Fix
 

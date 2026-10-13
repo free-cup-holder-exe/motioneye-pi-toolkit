@@ -20,4 +20,4 @@ It needs a persistent journal, otherwise everything before a reboot is lost: see
 
 `throttled` is the `vcgencmd get_throttled` bitmask: `0x0` is clean; bit 0 (`0x1`) means under-voltage right now, bit 16 (`0x10000`) means under-voltage happened since boot.
 
-Background: [docs/howto/heartbeat.md](../../docs/howto/heartbeat.md), [docs/troubleshooting/random-reboots.md](../../docs/troubleshooting/random-reboots.md).
+Background: [docs/howto/heartbeat.md](../../docs/howto/heartbeat.md), [docs/troubleshooting/wifi-drops.md](../../docs/troubleshooting/wifi-drops.md).

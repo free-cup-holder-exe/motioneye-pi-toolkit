@@ -24,7 +24,7 @@ ssh admin@cam-a 'sudo bash -s -- "2026-10-07 21:00"' < tools/health-check/health
 All cameras in one go:
 
 ```sh
-for h in cam-a cam-b cam-c cam-d cam-e; do
+for h in cam-a cam-b cam-c cam-d; do
   ssh admin@$h 'sudo bash -s -- "2026-10-07 21:00"' < tools/health-check/health-check.sh
 done
 ```
@@ -39,10 +39,10 @@ Each camera prints a header line with its host name, the time and its uptime, fo
 
 **Header:** host, time, uptime, load, temperature and `throttled`.
 - `throttled=0x0` is good. `0x50000` means under-voltage happened since boot (power supply, cable or connector). `0x60000` means it throttled for heat. The flags stay set until reboot. See [heartbeat](heartbeat.md).
-- On a single-core Pi Zero W, load around 1 was normal for us. Your own ssh commands raise it.
+- Over 7 days of heartbeats, the 1-minute load had a median of 0.18-0.34 on our Pi 4s and 0.45 on cam-d, a Pi Zero 2 W with 4 cores. Short spikes up to about 9-12 happened on all four. Your own ssh commands raise the load.
 
 **motionEye line:** version, `web=`, `active=`, `since=`, `motion_procs=`, `disk=`, `mem_avail=`.
-- `web=200` and `active=active`. `web=000` right after a boot means it is still starting; a Pi Zero W needs 20-30 s. Run the check again before you worry.
+- `web=200` and `active=active`. `web=000` right after a boot means it is still starting. Over 7 days, motionEye took about 4.5-5 s from start to `server started` in the journal on our Pi 4s (once 7.2 s), and 15-18 s on cam-d, a Pi Zero 2 W. Run the check again before you worry.
 - `motion_procs=1`. 0 means motion is not running. 2 means a second motion daemon, usually the distro `motion.service` started by something (see [Nightly updates](nightly-updates.md)).
 - `since=` shows when motionEye last started. The nightly update restarts it.
 - `disk=` should stay level from day to day once media retention is in effect.
@@ -51,7 +51,7 @@ Each camera prints a header line with its host name, the time and its uptime, fo
 **csp header:** `1` if the web page sends a Content-Security-Policy header. Builds of dev with #3435 do. 0.44.0 and older do not, so `0` is normal there.
 
 **boots since / motion starts:**
-- `boots` should be 0 unless you rebooted. Anything else is a reboot or a power loss. Check the heartbeats and see [Random reboots](../troubleshooting/random-reboots.md).
+- `boots` should be 0 unless you rebooted. Anything else is a reboot or a power loss. Check the heartbeats: see [heartbeat](heartbeat.md).
 - `motion starts` counts motion start-up lines. Expect a few, because the nightly update and any heal or config save restart motionEye. A count that climbs through the day means motion keeps dying.
 
 **motionEye errors/warnings:** grouped and counted, with numbers replaced by `N`.

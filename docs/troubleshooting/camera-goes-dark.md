@@ -1,6 +1,6 @@
 # Camera picture freezes or goes dark
 
-This page is for CSI (ribbon) cameras that motion reads through the libcamera-to-MJPEG bridge in [`tools/picam-mjpeg/`](../../tools/picam-mjpeg/). In this setup that means cam-a to cam-d. cam-e has a USB webcam that motion reads directly, so it has no bridge. For how the bridge works, see [CSI camera MJPEG bridge](../howto/csi-camera-mjpeg-bridge.md).
+This page is for CSI (ribbon) cameras that motion reads through the libcamera-to-MJPEG bridge in [`tools/picam-mjpeg/`](../../tools/picam-mjpeg/). In this setup that means all four cameras, cam-a to cam-d. For how the bridge works, see [CSI camera MJPEG bridge](../howto/csi-camera-mjpeg-bridge.md).
 
 ## Symptoms
 
@@ -126,7 +126,7 @@ systemctl list-timers cam-watchdog.timer --no-pager
 
 - Run the dark-gap command again after a few days. With the watchdog, gaps should stay under about 7 minutes. A gap that ends in a reboot spans two boots.
 - One `motion_init: Error capturing first image` per motion start is normal here. motion starts before the bridge has a frame, and recovers on its own.
-- If the Pi reboots and you do not know why, check `sudo journalctl -t cam-watchdog` first. See also [random reboots](./random-reboots.md).
+- If the Pi reboots and you do not know why, check `sudo journalctl -t cam-watchdog` first. See also [Log a heartbeat every minute](../howto/heartbeat.md).
 
 ## Limits and open questions
 

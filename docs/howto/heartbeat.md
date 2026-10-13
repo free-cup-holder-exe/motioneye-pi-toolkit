@@ -20,10 +20,7 @@ cam-heartbeat: temp=48.2C throttled=0x0 load=0.80 0.75 0.70 memavail=3300MB
 - **It proves the OS was alive.** When a camera "goes down", look at the heartbeats of that boot. If they run every minute right up to the moment someone pulled the power, the OS never died. The problem was the network. A gap means a real crash, hang or power loss.
 - **It shows the conditions at the moment of a crash.** Climbing temperature points at heat. A throttled flag points at under-voltage. A load spike or memory running out shows up too.
 
-Two examples from our cameras:
-
-- One camera "crashed hard" twice. The journal showed 61 heartbeats in its final hour with no gap, and normal temperature, load and memory, right up to the power cycle. Its Wi-Fi link had stopped passing traffic without logging anything. It was never a crash.
-- Another camera rebooted many times a day. Every heartbeat read `throttled=0x0`, 44-46 C, low load and plenty of memory, and each boot ended mid-heartbeat. That ruled out heat and memory, and showed the resets were instant.
+An example from our cameras: one camera "crashed hard" twice. The journal showed 61 heartbeats in its final hour with no gap, and normal temperature, load and memory, right up to the power cycle. Its Wi-Fi link had stopped passing traffic without logging anything. It was never a crash.
 
 ## Requirements
 
@@ -92,7 +89,8 @@ These flags stay set until the next reboot, so one under-voltage dip at boot sta
 Other readings:
 
 - `memavail` around 150-160 MB is normal on a Pi Zero 2 W (424 MB usable) running motionEye.
-- On a single-core Pi Zero W, your own ssh session raises the load. Wait about 90 s idle before you trust a load reading.
+- On cam-d, a Pi Zero 2 W with 4 cores, the 1-minute load over 7 days had a median of 0.45. Nine minutes in ten it was 0.90 or less. On our Pi 4s the median was 0.18-0.34, and nine minutes in ten it was 0.66 or less. All four had short spikes up to about 9-12.
+- Your own ssh session raises the load. Wait about 90 s idle before you trust a load reading.
 
 ## Undo
 
@@ -104,5 +102,5 @@ sudo rm /usr/local/sbin/cam-heartbeat
 
 ## Related
 
-- [Random reboots](../troubleshooting/random-reboots.md)
+- [Wi-Fi drops](../troubleshooting/wifi-drops.md)
 - [Camera picture freezes or goes dark](../troubleshooting/camera-goes-dark.md)

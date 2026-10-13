@@ -44,8 +44,7 @@ same after a later power cut (-63 dBm on the far AP, against -54 on the near one
 
 cam-b's kernel logged 664 SDIO "halting operation" events over its life; the other boards logged
 none. It lost Wi-Fi once, in September. We put that down as a one-off; it logged none across the two
-reboots of the September kernel and firmware upgrade. We once blamed these events for cam-e's
-reboots, wrongly: they were cam-b's (see [random-reboots.md](./random-reboots.md)).
+reboots of the September kernel and firmware upgrade.
 
 ## Check
 
@@ -57,7 +56,7 @@ sudo journalctl -k -b -1 --no-pager | grep -i brcmf | tail
 ```
 
 One heartbeat a minute right up to the power cycle means the network failed, not the Pi. A gap
-means a real crash: see [random-reboots.md](./random-reboots.md). The heartbeat comes from
+means a real crash. The heartbeat comes from
 `tools/cam-heartbeat/` ([../howto/heartbeat.md](../howto/heartbeat.md)) and needs a
 [persistent journal](../howto/persistent-journal.md).
 
@@ -73,12 +72,13 @@ sudo /usr/sbin/iw dev wlan0 get power_save
 
 - Use `sudo` and the full path for `iw`. Without them (for example in a non-interactive SSH
   command) it can print nothing, which looks like a pass.
-- A Pi Zero W shows only Band 1. It is 2.4 GHz only and cannot join a 5 GHz SSID.
+- On cam-d (Pi Zero 2 W) the `iw phy` line shows only Band 1, with no 5 GHz channels. A Pi Zero 2 W
+  is 2.4 GHz only and cannot join a 5 GHz SSID.
 - Write down each camera's normal AP and signal while it is healthy. Compare after every power cut.
 - Probe from another machine on the same LAN. Pings from our admin PC were not a reliable sign of
   whether a Pi was up. A camera that is "offline" in the hub but answers SSH is usually slow, not down.
-- If a Pi never joins at all, check that a profile exists before you blame range or the password
-  (see [random-reboots.md](./random-reboots.md)).
+- If a Pi never joins at all, check that a profile exists (the `con show` line above) before you
+  blame range or the password.
 
 ## Fix
 

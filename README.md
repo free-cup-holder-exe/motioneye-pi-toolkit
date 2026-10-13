@@ -1,6 +1,6 @@
 # motioneye-pi-toolkit
 
-Tools and field notes for running [motionEye](https://github.com/motioneye-project/motioneye) on Raspberry Pi cameras, mostly with ribbon (CSI) camera modules, from a small home setup of five Pis: three Pi 4s and a Pi Zero 2 W with ribbon cameras, and a Pi Zero W with a USB webcam.
+Tools and field notes for running [motionEye](https://github.com/motioneye-project/motioneye) on Raspberry Pi cameras with ribbon (CSI) camera modules, from a small home setup of four Pis: three Pi 4s and a Pi Zero 2 W.
 
 Everything here was built to fix a real problem on those cameras and is still running on them. The notes say what worked, what did not, and what is still unknown.
 
@@ -55,7 +55,6 @@ Troubleshooting, by symptom:
 - [Alerts not arriving](docs/troubleshooting/alerts-not-arriving.md)
 - [Alerts arrive without pictures](docs/troubleshooting/alerts-missing-pictures.md)
 - [Disk filling up](docs/troubleshooting/disk-filling-up.md)
-- [Random reboots](docs/troubleshooting/random-reboots.md)
 - [Camera unreachable but the Pi is alive (Wi-Fi)](docs/troubleshooting/wifi-drops.md)
 - [Adding a camera fails, hangs or accepts a wrong password](docs/troubleshooting/adding-a-camera.md)
 
@@ -78,12 +77,12 @@ Investigations:
 
 ## Tested with
 
-Raspberry Pi OS 13 (Trixie), Python 3.13, motion 4.7.x, motionEye 0.44.0 and the 0.45.0 development builds, Picamera2 from the Raspberry Pi OS packages, OV5647 and IMX219 camera modules, and a Logitech C615 USB webcam.
+Raspberry Pi OS 13 (Trixie), Python 3.13, motion 4.7.x, motionEye 0.44.0 and the 0.45.0 development builds, Picamera2 from the Raspberry Pi OS packages, and OV5647 and IMX219 camera modules.
 
 ## Before you use anything
 
 - Try it on one camera first. The scripts assume motionEye's defaults: config in `/etc/motioneye`, media in `/var/lib/motioneye`, web UI on port 8765, an admin user with `sudo`.
-- Camera names (`cam-a` … `cam-e`), addresses (`192.0.2.x`) and host names (`example.com`) in the docs are placeholders.
+- Camera names (`cam-a` … `cam-d`), addresses (`192.0.2.x`) and host names (`example.com`) in the docs are placeholders.
 - No warranty; see [LICENSE](LICENSE) (MIT).
 
 ## Contributing to this repo
