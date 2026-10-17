@@ -1,11 +1,14 @@
 # Fixes contributed upstream
 
-Sixteen fixes to [motionEye](https://github.com/motioneye-project/motioneye)
+Twenty-two fixes to [motionEye](https://github.com/motioneye-project/motioneye)
 came out of running this setup. Most started as a problem seen on these
 cameras. Some (#3416, #3443, #3444, #3445) started from other users' reports.
 
-**Status of all 16:** merged into motionEye's `dev` branch and planned for
-the next release, **0.45.0**. None of them are in 0.44.0.
+**Status of all 22:** merged into motionEye's `dev` branch and planned for
+the next release, **0.45.0**. None of them are in 0.44.0. One more,
+[#3452](https://github.com/motioneye-project/motioneye/pull/3452) (stopping
+the service no longer restarts motion in the middle of the shutdown), is
+open.
 
 ## Notifications
 
@@ -15,6 +18,7 @@ the next release, **0.45.0**. None of them are in 0.44.0.
 | [#3425](https://github.com/motioneye-project/motioneye/pull/3425) | Telegram alerts only look at pictures in the alert's time span, like email alerts. A big day folder no longer makes them time out and arrive without pictures. | 2026-09-30 |
 | [#3428](https://github.com/motioneye-project/motioneye/pull/3428) | Telegram alert pictures arrive oldest first, the same order as email. | 2026-10-01 |
 | [#3426](https://github.com/motioneye-project/motioneye/pull/3426) | The SMTP password and Telegram bot token are no longer on motion's command line, so they stay out of the process list and out of `motion.log` at debug level. They are kept in the camera's config file instead. | 2026-10-05 |
+| [#3457](https://github.com/motioneye-project/motioneye/pull/3457) | A Telegram alert that Telegram rejects (wrong chat id or token) is logged as failed, and the test button in the UI says so. Before, both said sent. A request that hangs times out and is retried once. | 2026-10-15 |
 
 ## Configuration, passwords and the camera list
 
@@ -23,6 +27,8 @@ the next release, **0.45.0**. None of them are in 0.44.0.
 | [#3433](https://github.com/motioneye-project/motioneye/pull/3433) | motionEye no longer sends set passwords to the browser or API; the UI shows `*****` for them. Home Assistant and other API clients that save a config back unchanged no longer overwrite a password with `*****`. | 2026-10-05 |
 | [#3434](https://github.com/motioneye-project/motioneye/pull/3434) | A webhook command that can't be parsed (for example a URL with a `'` in it) no longer breaks the camera list for every camera. It shows as a custom command, and a warning names the camera and setting. | 2026-10-05 |
 | [#3421](https://github.com/motioneye-project/motioneye/pull/3421) | One offline camera behind a remote motionEye no longer breaks the whole camera list. It shows as "Connection failed" and the other cameras load. | 2026-10-01 |
+| [#3458](https://github.com/motioneye-project/motioneye/pull/3458) | Extra `netcam_params` entries added through Extra Options (for example motion's `decoder` for hardware decoding) survive a save. Before, motionEye kept only its own keepalive, tolerant-check and RTSP-transport settings and dropped the rest. | 2026-10-15 |
+| [#3459](https://github.com/motioneye-project/motioneye/pull/3459) | An error a remote motionEye reports inside a 200 answer (a failed notification test, a delete, a save behind two hubs) shows as an error on the hub. Before, the hub reported success, and a failed movie download through two hubs was cached as if it were the movie. | 2026-10-16 |
 
 ## Adding cameras
 
@@ -47,12 +53,15 @@ Until these ship, [Adding a camera fails, hangs or accepts a wrong password](tro
 |---|---|---|
 | [#3427](https://github.com/motioneye-project/motioneye/pull/3427) | A typo in `log_level` no longer turns on debug logging, which also made motion log its whole configuration and every event command. motionEye keeps the current level and logs `unknown log level`. | 2026-10-04 |
 | [#3436](https://github.com/motioneye-project/motioneye/pull/3436) | Messages from the config migration at startup now reach the normal log, including `motioneye.log` with `log_to_file`. Before, the info line was dropped and warnings went only to stderr. | 2026-10-05 |
+| [#3456](https://github.com/motioneye-project/motioneye/pull/3456) | Errors from the alert commands (`sendmail`, `sendtelegram`, webhooks) reach the journal, tagged `meyectl`, on systems with syslog. On dev they went nowhere unless `log_to_file` was on; in 0.44.0 they were in `motion.log`. | 2026-10-15 |
 
 ## Performance
 
 | PR | What changes for you | Merged into dev |
 |---|---|---|
 | [#3414](https://github.com/motioneye-project/motioneye/pull/3414) | Email alerts list only the pictures in the alert's time window, not the whole day folder. On a Pi 4 with 57,093 files the listing went from 63.3 s to 1.5 s, well inside the default 10 s timeout. | 2026-09-10 |
+| [#3454](https://github.com/motioneye-project/motioneye/pull/3454) | The 12-hourly cleanup of old media checks each folder once instead of after every file it deletes. With 5 s snapshots a day folder holds 17,280 stills, and the old way grew with the square of that. | 2026-10-15 |
+| [#3460](https://github.com/motioneye-project/motioneye/pull/3460) | The camera list asks all remote cameras at the same time. Each remote that didn't answer used to add its full timeout (10 s by default): five remotes with three unreachable took 30 s and now take 10 s. | 2026-10-15 |
 
 This does not make huge folders free. On a Pi Zero 2 W with about 77,000
 files the windowed listing still took 10.6 s. On small boards, keep media
@@ -85,10 +94,15 @@ Notes from the PR descriptions:
 - **#3445:** Adding an RTSP camera with a Basic
   login and a wrong password now fails with "authentication failed".
   Cameras you already added are not affected.
+- **#3456:** On a system with syslog, errors from the alert commands are in
+  the journal under the `meyectl` tag (`journalctl -t meyectl`), not in
+  `motion.log`.
+- **#3457:** A Telegram setup that never worked now says so: the test button
+  reports the failure instead of "sent". Check the chat id and token.
 
 ## Getting them before 0.45.0
 
-All 16 are on `dev` today. To
+All 22 are on `dev` today. To
 run `dev` before the release, see the
 [canary testing guide](howto/canary-testing-dev.md). Start with one camera
 you can afford to lose for a while, and keep a way back to the release you

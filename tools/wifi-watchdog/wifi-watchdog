@@ -1,0 +1,55 @@
+#!/bin/bash
+# motioneye-pi-toolkit: https://github.com/free-cup-holder-exe/motioneye-pi-toolkit
+# SPDX-License-Identifier: MIT
+# wifi-watchdog: recover a Pi whose Wi-Fi silently stops passing traffic.
+# The interface stays "up", nothing is logged, but the gateway no longer answers. Every minute
+# (wifi-watchdog.timer) ping the default gateway over $IF; after FAIL_MAX failed runs in a row,
+# bounce $IF through NetworkManager; if it is still failing FAIL_MAX runs after the bounce, reboot,
+# at most REBOOT_MAX times per 24 h. A reachable gateway clears all state.
+# Test without touching anything: DRYRUN=1 IF=<bogus interface> STATE_DIR=<dir> bash wifi-watchdog
+IF=${IF:-wlan0}
+FAIL_MAX=${FAIL_MAX:-3}
+REBOOT_MAX=${REBOOT_MAX:-2}
+STATE=${STATE_DIR:-/var/lib/wifi-watchdog}
+NOW=${NOW:-$(date +%s)}
+
+say() {
+    if [ -n "$DRYRUN" ]; then echo "$*"; else logger -t wifi-watchdog "$*"; fi
+}
+
+mkdir -p "$STATE"
+GW=$(ip route show default dev "$IF" 2>/dev/null | awk '{print $3; exit}')
+if [ -n "$GW" ] && ping -c 2 -W 2 -I "$IF" "$GW" >/dev/null 2>&1; then
+    rm -f "$STATE/fails" "$STATE/bounced"
+    exit 0
+fi
+
+FAILS=$(( $(cat "$STATE/fails" 2>/dev/null || echo 0) + 1 ))
+echo "$FAILS" > "$STATE/fails"
+say "gateway ${GW:-unknown} unreachable over $IF ($FAILS/$FAIL_MAX)"
+if [ "$FAILS" -lt "$FAIL_MAX" ]; then exit 0; fi
+
+if [ ! -f "$STATE/bounced" ]; then
+    say "bouncing $IF through NetworkManager"
+    echo "$NOW" > "$STATE/bounced"
+    echo 0 > "$STATE/fails"
+    if [ -z "$DRYRUN" ]; then
+        nmcli device disconnect "$IF" >/dev/null 2>&1
+        sleep 3
+        nmcli device connect "$IF" >/dev/null 2>&1
+    fi
+    exit 0
+fi
+
+touch "$STATE/reboots"
+RECENT=$(awk -v now="$NOW" '$1 > now - 86400' "$STATE/reboots" | wc -l)
+if [ "$RECENT" -ge "$REBOOT_MAX" ]; then
+    say "still unreachable after a bounce, but $RECENT reboots in 24 h already: leaving it"
+    exit 0
+fi
+say "still unreachable $((NOW - $(cat "$STATE/bounced")))s after the bounce: rebooting"
+echo "$NOW" >> "$STATE/reboots"
+rm -f "$STATE/fails" "$STATE/bounced"
+if [ -z "$DRYRUN" ]; then
+    systemctl reboot
+fi

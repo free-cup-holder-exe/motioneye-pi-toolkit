@@ -120,13 +120,19 @@ wedges: 114 single lost pings, never 3 in a row.
 Wired Ethernet is the sure fix if you can run a cable. The Pi 4 has the port; for cam-a it was not
 an option.
 
-### 3. A ping watchdog for a weak box (cam-a only)
+### 3. A ping watchdog for a box that wedges silently
 
-cam-a runs a small root cron job every minute. It pings the gateway (for example 192.0.2.1). After
-3 failures in a row it turns the radio off and on (`nmcli radio wifi off`, then `on`). If the link
-is still dead, it reboots. It skips the first 5 minutes after boot and logs every action with
-`logger`. In late September and early October it bounced the radio twice, both times during a large
-nightly upload, and Wi-Fi was back in 8 s. We have not rolled it out to cameras that don't need it.
+[`tools/wifi-watchdog`](../../tools/wifi-watchdog) pings the gateway every minute from a systemd
+timer. After 3 misses in a row it bounces the interface through NetworkManager; if the gateway is
+still unreachable 3 runs later, it reboots, at most twice in 24 hours. It starts 5 minutes after
+boot, logs every action with `logger -t wifi-watchdog`, and logs nothing while the link is fine.
+It has a dry-run mode, so test it before you enable the timer.
+
+cam-c runs it since a silent wedge in October that needed a power cycle: 19 hours of heartbeats
+and then nothing, no kernel message, until the plug was pulled. cam-a has run an older cron
+variant of the same idea since late September (radio off and on instead of an interface bounce);
+it bounced the radio twice, both times during a large nightly upload, and Wi-Fi was back in 8 s.
+We have not rolled it out to cameras that don't need it.
 
 ### 4. Sticky client: bounce the connection
 

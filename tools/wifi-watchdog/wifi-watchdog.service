@@ -1,0 +1,7 @@
+[Unit]
+Description=Bounce the Wi-Fi, or reboot, when the gateway stays unreachable
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/wifi-watchdog

@@ -81,7 +81,7 @@ The script:
 
 - The web UI answers 200, exactly one motion process runs, and the new version shows.
 - No new errors: `sudo journalctl -u motioneye --since "-10 min" | grep -iE 'error|warning|traceback'`. With the [bridge](csi-camera-mjpeg-bridge.md), one `motion_init: Error capturing first image` per motion start is normal.
-- Alerts: wait a minute, fire a test event and read the result ([how](log-notification-outcomes.md#check-it-works)). Expect `result=sent` on each channel.
+- Alerts: wait for the first frame, then fire a test event and read the result: `sudo bash canary-event.sh` from [`tools/canary`](../../tools/canary) does both ([how it reads the result](log-notification-outcomes.md#check-it-works)). Expect `result=sent` on each channel. An event fired before motion has captured its first frame after the restart never runs the event commands, so nothing is sent and nothing is logged; that looks like a broken build and isn't. The script waits for a fresh snapshot first.
 - UI: open it in a browser and reload without the cache. If images or layout are missing, open the browser console and look for "Refused to". dev sends a Content-Security-Policy header (#3435), and a blocked resource shows up there. Check the header with `curl -s -D - -o /dev/null http://127.0.0.1:8765/ | grep -i content-security-policy`.
 - The next morning, and daily after that, run the [health check](health-checks.md).
 

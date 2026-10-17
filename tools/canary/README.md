@@ -17,6 +17,8 @@ scp canary-wheel/motioneye-*.whl admin@cam:/tmp/
 ssh admin@cam 'sudo bash -s' < canary-deploy.sh
 ```
 
+`canary-event.sh` checks the alerts after a deploy: it waits until motion has captured a fresh snapshot, fires a test event through motion's web control, and prints the `result=` lines of [motioneye-notify](../motioneye-notify) for email and Telegram plus the count of sender errors. Run it as root on the Pi (`sudo bash canary-event.sh`, optionally with the camera number). Fire the event only after the first frame: before that, motion runs no event commands at all, and a test looks failed for no reason.
+
 Rollback (on the Pi, with the folder it printed):
 
 ```sh
