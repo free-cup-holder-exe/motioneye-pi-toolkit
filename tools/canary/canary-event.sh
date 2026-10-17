@@ -15,13 +15,16 @@ P=$(awk '$1=="webcontrol_port" {print $2}' /etc/motioneye/motion.conf)
 echo "##### $(hostname) $(date '+%F %T') motionEye $(python3 -c 'import motioneye; print(motioneye.VERSION)' 2>/dev/null)"
 echo "connection: $(curl -s --max-time 5 "http://127.0.0.1:$P/$CAM/detection/connection" | sed 's/<[^>]*>//g' | tr -s ' \n' ' ' | cut -c1-90)"
 echo "detection: $(curl -s --max-time 5 "http://127.0.0.1:$P/$CAM/detection/status" | sed 's/<[^>]*>//g' | tr -s ' \n' ' ' | cut -c1-60)"
-for i in $(seq 1 18); do
-    n=$(find /var/lib/motioneye -name '*.jpg' -newermt '-30 sec' 2>/dev/null | wc -l)
-    [ "$n" -gt 0 ] && break
+ST=$(systemctl show motioneye -p ActiveEnterTimestamp --value)
+T=$(date -d "$ST" +%s)
+for i in $(seq 1 24); do
+    n=$(find /var/lib/motioneye -name '*.jpg' -newermt "$ST" 2>/dev/null | wc -l)
+    age=$(( $(date +%s) - T ))
+    [ "$n" -gt 1 ] && [ "$age" -ge 40 ] && break
     sleep 5
 done
-echo "fresh snapshots in the last 30 s: $n (after ~$((i*5))s)"
-[ "$n" -gt 0 ] || echo "WARNING: no fresh snapshot; motion may not be capturing yet, the event may do nothing"
+echo "snapshots since the service started: $n, ${age}s ago (waited ~$((i*5))s)"
+[ "$n" -gt 1 ] && [ "$age" -ge 40 ] || echo "WARNING: motion may not be capturing yet, the event may do nothing"
 T0=$(date '+%F %T')
 curl -s --max-time 5 "http://127.0.0.1:$P/$CAM/action/eventstart" >/dev/null; sleep 12
 curl -s --max-time 5 "http://127.0.0.1:$P/$CAM/action/eventend" >/dev/null
