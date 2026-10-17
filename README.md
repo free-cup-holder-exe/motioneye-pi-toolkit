@@ -28,7 +28,7 @@ You need a Raspberry Pi running Raspberry Pi OS with motionEye already working, 
    4. [Alert logging](tools/motioneye-notify): if you use email or Telegram alerts.
    5. Only for ribbon (CSI) cameras: the [MJPEG bridge](tools/picam-mjpeg), then the [dark-camera watchdog](tools/cam-watchdog).
 
-   The other two are for specific problems, so read their page first: [Wi-Fi power save](tools/wifi-powersave-off) and [canary builds](tools/canary).
+   The other three are for specific problems, so read their page first: [Wi-Fi power save](tools/wifi-powersave-off), the [Wi-Fi watchdog](tools/wifi-watchdog) and [canary builds](tools/canary).
 
 4. **If something goes wrong,** every tool page ends with an **Undo** section. To read the logs: `sudo journalctl -e` shows the latest system log, and `sudo journalctl -u motioneye -e` shows motionEye's.
 
@@ -44,8 +44,9 @@ A few words you will meet: `sudo` runs a command as the administrator, `systemct
 | [`tools/cam-heartbeat`](tools/cam-heartbeat) | One journal line a minute: temperature, throttling, load, free memory |
 | [`tools/journald`](tools/journald) | Keeps the journal across reboots on Raspberry Pi OS |
 | [`tools/wifi-powersave-off`](tools/wifi-powersave-off) | Turns Wi-Fi power save off at boot |
+| [`tools/wifi-watchdog`](tools/wifi-watchdog) | If the Wi-Fi silently stops passing traffic: bounces the interface, then reboots (max 2 per day) |
 | [`tools/health-check`](tools/health-check) | Read-only status report for one camera |
-| [`tools/canary`](tools/canary) | Installs a motionEye build from the dev branch on one camera, with a backup |
+| [`tools/canary`](tools/canary) | Installs a motionEye build from the dev branch on one camera, with a backup, and checks the alerts with a test event |
 
 ## Docs
 
