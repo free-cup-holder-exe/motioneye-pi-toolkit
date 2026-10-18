@@ -20,11 +20,11 @@ T=$(date -d "$ST" +%s)
 for i in $(seq 1 24); do
     n=$(find /var/lib/motioneye -name '*.jpg' -newermt "$ST" 2>/dev/null | wc -l)
     age=$(( $(date +%s) - T ))
-    [ "$n" -gt 1 ] && [ "$age" -ge 40 ] && break
+    [ "$n" -gt 1 ] && [ "$age" -ge 60 ] && break
     sleep 5
 done
 echo "snapshots since the service started: $n, ${age}s ago (waited ~$((i*5))s)"
-[ "$n" -gt 1 ] && [ "$age" -ge 40 ] || echo "WARNING: motion may not be capturing yet, the event may do nothing"
+[ "$n" -gt 1 ] && [ "$age" -ge 60 ] || echo "WARNING: motion may not be capturing yet, the event may do nothing"
 T0=$(date '+%F %T')
 curl -s --max-time 5 "http://127.0.0.1:$P/$CAM/action/eventstart" >/dev/null; sleep 12
 curl -s --max-time 5 "http://127.0.0.1:$P/$CAM/action/eventend" >/dev/null
