@@ -1,14 +1,11 @@
 # Fixes contributed upstream
 
-Twenty-two fixes to [motionEye](https://github.com/motioneye-project/motioneye)
+Twenty-three fixes to [motionEye](https://github.com/motioneye-project/motioneye)
 came out of running this setup. Most started as a problem seen on these
 cameras. Some (#3416, #3443, #3444, #3445) started from other users' reports.
 
-**Status of all 22:** merged into motionEye's `dev` branch and planned for
-the next release, **0.45.0**. None of them are in 0.44.0. One more,
-[#3452](https://github.com/motioneye-project/motioneye/pull/3452) (stopping
-the service no longer restarts motion in the middle of the shutdown), is
-open.
+**Status of all 23:** merged into motionEye's `dev` branch and planned for
+the next release, **0.45.0**. None of them are in 0.44.0.
 
 ## Notifications
 
@@ -54,6 +51,7 @@ Until these ship, [Adding a camera fails, hangs or accepts a wrong password](tro
 | [#3427](https://github.com/motioneye-project/motioneye/pull/3427) | A typo in `log_level` no longer turns on debug logging, which also made motion log its whole configuration and every event command. motionEye keeps the current level and logs `unknown log level`. | 2026-10-04 |
 | [#3436](https://github.com/motioneye-project/motioneye/pull/3436) | Messages from the config migration at startup now reach the normal log, including `motioneye.log` with `log_to_file`. Before, the info line was dropped and warnings went only to stderr. | 2026-10-05 |
 | [#3456](https://github.com/motioneye-project/motioneye/pull/3456) | Errors from the alert commands (`sendmail`, `sendtelegram`, webhooks) reach the journal, tagged `meyectl`, on systems with syslog. On dev they went nowhere unless `log_to_file` was on; in 0.44.0 they were in `motion.log`. | 2026-10-15 |
+| [#3452](https://github.com/motioneye-project/motioneye/pull/3452) | Stopping the service stops it at once. On dev, the stop signal was only noticed at the next timer, often the 10 s motion checker, which then restarted motion in the middle of the shutdown. A `systemctl stop` now takes as long as motion's own exit, about 4-6 s on a Pi 4. | 2026-10-18 |
 
 ## Performance
 
@@ -102,7 +100,7 @@ Notes from the PR descriptions:
 
 ## Getting them before 0.45.0
 
-All 22 are on `dev` today. To
+All 23 are on `dev` today. To
 run `dev` before the release, see the
 [canary testing guide](howto/canary-testing-dev.md). Start with one camera
 you can afford to lose for a while, and keep a way back to the release you
