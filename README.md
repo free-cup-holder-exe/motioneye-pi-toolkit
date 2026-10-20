@@ -10,7 +10,14 @@ You need a Raspberry Pi running Raspberry Pi OS with motionEye already working, 
 
 1. **Connect to the Pi.** On Windows open PowerShell, on a Mac or Linux open a terminal, and type `ssh <user>@<pi-address>`, for example `ssh admin@192.0.2.10`. Everything below runs on the Pi. Commands that start with `sudo` run as the administrator and may ask for your password.
 
-2. **Download the toolkit.** No git needed:
+2. **Download the toolkit.** Two commands on the Pi install any tool straight from this repo, no copying of files:
+
+   ```sh
+   wget https://raw.githubusercontent.com/free-cup-holder-exe/motioneye-pi-toolkit/main/install.sh
+   sudo bash install.sh journald cam-heartbeat
+   ```
+
+   The script fetches the rest of the toolkit into a temporary folder by itself. If you prefer to have the whole toolkit on the Pi, to read the scripts or run the ones that are not installed, no git needed:
 
    ```sh
    cd ~

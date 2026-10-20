@@ -37,7 +37,14 @@ SystemMaxUse=200M
 
 ## Install
 
-Copy the repo's `tools` folder to the Pi, then:
+On the Pi, two commands install it; the script fetches the toolkit by itself:
+
+```sh
+wget https://raw.githubusercontent.com/free-cup-holder-exe/motioneye-pi-toolkit/main/install.sh
+sudo bash install.sh journald
+```
+
+It is safe to run again, `sudo bash install.sh --uninstall journald` undoes it, and `bash install.sh --dry-run journald` only prints the steps. If you have the toolkit folder already, `sudo ./install.sh journald` from that folder does the same. By hand, what the installer does:
 
 ```sh
 sudo mkdir -p /etc/systemd/journald.conf.d

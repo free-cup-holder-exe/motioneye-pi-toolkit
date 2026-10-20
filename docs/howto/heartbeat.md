@@ -30,7 +30,14 @@ An example from our cameras: one camera "crashed hard" twice. The journal showed
 
 ## Install
 
-Copy the repo's `tools` folder to the Pi, then:
+On the Pi, two commands install it; the script fetches the toolkit by itself:
+
+```sh
+wget https://raw.githubusercontent.com/free-cup-holder-exe/motioneye-pi-toolkit/main/install.sh
+sudo bash install.sh cam-heartbeat
+```
+
+It is safe to run again, `sudo bash install.sh --uninstall cam-heartbeat` undoes it, and `bash install.sh --dry-run cam-heartbeat` only prints the steps. If you have the toolkit folder already, `sudo ./install.sh cam-heartbeat` from that folder does the same. By hand, what the installer does:
 
 ```sh
 sudo install -m 755 -o root -g root tools/cam-heartbeat/cam-heartbeat /usr/local/sbin/cam-heartbeat

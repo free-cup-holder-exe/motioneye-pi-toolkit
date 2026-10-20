@@ -54,7 +54,14 @@ Autofocus cameras such as the Camera Module 3: the bridge switches autofocus to 
 
 ## Install
 
-Copy the repo's `tools` folder to the Pi (for example `scp -r tools admin@cam-a:`). Then, on the Pi:
+On the Pi, two commands install it; the script fetches the toolkit by itself:
+
+```sh
+wget https://raw.githubusercontent.com/free-cup-holder-exe/motioneye-pi-toolkit/main/install.sh
+sudo bash install.sh picam-mjpeg
+```
+
+It is safe to run again, `sudo bash install.sh --uninstall picam-mjpeg` undoes it, and `bash install.sh --dry-run picam-mjpeg` only prints the steps. If you have the toolkit folder already, `sudo ./install.sh picam-mjpeg` from that folder does the same. By hand, what the installer does:
 
 ```sh
 sudo apt install python3-picamera2

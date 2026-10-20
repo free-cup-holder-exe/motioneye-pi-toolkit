@@ -50,7 +50,14 @@ We run it from root's crontab every night at 02:17, after the nightly update. We
 
 ## Install
 
-Copy the repo's `tools` folder to the Pi, then:
+On the Pi, two commands install it; the script fetches the toolkit by itself:
+
+```sh
+wget https://raw.githubusercontent.com/free-cup-holder-exe/motioneye-pi-toolkit/main/install.sh
+sudo bash install.sh motioneye-notify
+```
+
+It is safe to run again, `sudo bash install.sh --uninstall motioneye-notify` undoes it, and `bash install.sh --dry-run motioneye-notify` only prints the steps. If you have the toolkit folder already, `sudo ./install.sh motioneye-notify` from that folder does the same. By hand, what the installer does:
 
 ```sh
 sudo install -m 755 -o root -g root tools/motioneye-notify/motioneye-notify /usr/local/sbin/motioneye-notify
