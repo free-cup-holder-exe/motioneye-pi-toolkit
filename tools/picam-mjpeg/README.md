@@ -7,6 +7,14 @@ A small MJPEG HTTP server for a Raspberry Pi CSI (ribbon) camera, so motionEye c
 | `picam_mjpeg.py` | `/usr/local/bin/picam_mjpeg.py` |
 | `picam-mjpeg.service` | `/etc/systemd/system/picam-mjpeg.service` |
 
+Install in one go, from this folder (it does exactly the steps below, and is safe to run again):
+
+```sh
+sudo ./install.sh
+```
+
+`./install.sh --dry-run` only prints what it would do. By hand:
+
 ```sh
 sudo apt install python3-picamera2
 sudo install -m 755 picam_mjpeg.py /usr/local/bin/picam_mjpeg.py
@@ -26,3 +34,5 @@ The script exits, and systemd restarts it 3 s later, when no first frame arrives
 The cameras in this setup run the same script with the frame size written into it; this copy reads it from the environment instead.
 
 Full guide: [docs/howto/csi-camera-mjpeg-bridge.md](../../docs/howto/csi-camera-mjpeg-bridge.md).
+
+Undo: `sudo ./install.sh --uninstall` (stops and removes the service and the script; the `python3-picamera2` package stays). Then remove the camera that used the stream in motionEye.

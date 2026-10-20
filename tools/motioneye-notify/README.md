@@ -19,6 +19,14 @@ moteye-tg:   error=failed to send telegram: ...|requests.exceptions.ConnectTimeo
 | `motioneye-notify` | `/usr/local/sbin/motioneye-notify` |
 | `motioneye-notify-heal` | `/usr/local/sbin/motioneye-notify-heal` |
 
+Install in one go, from this folder (it does exactly the steps below, and is safe to run again):
+
+```sh
+sudo ./install.sh
+```
+
+`./install.sh --dry-run` only prints what it would do. By hand:
+
 ```sh
 sudo install -m 755 motioneye-notify motioneye-notify-heal /usr/local/sbin/
 sudo /usr/local/sbin/motioneye-notify-heal      # REWIRED: camera-1.conf ... (restarts motionEye) or NOCHANGE
@@ -45,3 +53,5 @@ Security notes:
 Works with both the old long command form and the short `sendmail %t MOMENT` form from #3426.
 
 Guide: [docs/howto/log-notification-outcomes.md](../../docs/howto/log-notification-outcomes.md). Troubleshooting: [docs/troubleshooting/alerts-not-arriving.md](../../docs/troubleshooting/alerts-not-arriving.md).
+
+Undo: `sudo ./install.sh --uninstall`. It runs `motioneye-notify-heal --remove` first, which puts motionEye's own commands back and restarts it, then removes the crontab line and the two scripts. Alerts keep working, without the result lines.

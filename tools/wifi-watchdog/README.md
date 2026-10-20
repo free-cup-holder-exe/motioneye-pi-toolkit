@@ -17,6 +17,14 @@ A reachable gateway clears its state, so a one-off lost ping does nothing. The t
 
 ## Install
 
+In one go, from this folder (it does exactly the steps below, and is safe to run again):
+
+```sh
+sudo ./install.sh
+```
+
+`./install.sh --dry-run` only prints what it would do. By hand:
+
 ```sh
 sudo install -m 755 wifi-watchdog /usr/local/sbin/wifi-watchdog
 sudo install -m 644 wifi-watchdog.service wifi-watchdog.timer /etc/systemd/system/
@@ -45,6 +53,10 @@ systemctl list-timers wifi-watchdog.timer      # fires every minute
 sudo journalctl -t wifi-watchdog               # empty while the link is fine
 ls /var/lib/wifi-watchdog                      # empty while the link is fine
 ```
+
+## Undo
+
+`sudo ./install.sh --uninstall` stops the timer and removes the three files and its state folder.
 
 ## Notes
 

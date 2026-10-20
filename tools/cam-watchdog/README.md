@@ -14,6 +14,14 @@ It does nothing while the bridge is stopped on purpose (`systemctl stop picam-mj
 | `cam-watchdog` | `/usr/local/sbin/cam-watchdog` |
 | `cam-watchdog.service`, `cam-watchdog.timer` | `/etc/systemd/system/` |
 
+Install in one go, from this folder (it does exactly the steps below, and is safe to run again):
+
+```sh
+sudo ./install.sh
+```
+
+`./install.sh --dry-run` only prints what it would do. By hand:
+
 ```sh
 sudo install -m 755 cam-watchdog /usr/local/sbin/cam-watchdog
 sudo install -m 644 cam-watchdog.service cam-watchdog.timer /etc/systemd/system/
@@ -34,6 +42,6 @@ DRYRUN=1 EVENTS_FILE=/tmp/events STATE_DIR=/tmp/cw-state bash cam-watchdog
 
 Settings: `DARK_MAX` (seconds, default 180) and `REBOOT_MAX` (default 3), via `sudo systemctl edit cam-watchdog.service` (`Environment=DARK_MAX=240`).
 
-Undo: `sudo systemctl disable --now cam-watchdog.timer`.
+Undo: `sudo ./install.sh --uninstall`, or by hand: `sudo systemctl disable --now cam-watchdog.timer`.
 
 Why both steps: the bridge normally exits by itself within 20 s of a stall and is back about 10 s later. In one case it logged the stall but the process was held for 24 minutes, most likely inside the camera driver. A kill may not free a process stuck there, so the reboot is the fallback. Background: [docs/troubleshooting/camera-goes-dark.md](../../docs/troubleshooting/camera-goes-dark.md).

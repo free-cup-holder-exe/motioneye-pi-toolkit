@@ -19,7 +19,13 @@ You need a Raspberry Pi running Raspberry Pi OS with motionEye already working, 
    cd motioneye-pi-toolkit-main
    ```
 
-   The install commands in the tool pages assume you are in this folder.
+   Every tool with an installer can then be set up with one command from this folder, for example:
+
+   ```sh
+   sudo ./install.sh journald cam-heartbeat
+   ```
+
+   `./install.sh --list` shows the tools, `./install.sh --dry-run <tool>` only prints what would be done, and `sudo ./install.sh --uninstall <tool>` undoes it. The tool pages show the same steps by hand.
 
 3. **Install one tool at a time, in this order,** and check each one works before the next:
    1. [Keep logs across reboots](tools/journald): without it, everything from before a crash is lost.
@@ -30,7 +36,7 @@ You need a Raspberry Pi running Raspberry Pi OS with motionEye already working, 
 
    The other three are for specific problems, so read their page first: [Wi-Fi power save](tools/wifi-powersave-off), the [Wi-Fi watchdog](tools/wifi-watchdog) and [canary builds](tools/canary).
 
-4. **If something goes wrong,** every tool page ends with an **Undo** section. To read the logs: `sudo journalctl -e` shows the latest system log, and `sudo journalctl -u motioneye -e` shows motionEye's.
+4. **If something goes wrong,** every tool page has an **Undo** line, and `sudo ./install.sh --uninstall <tool>` does it for you. To read the logs: `sudo journalctl -e` shows the latest system log, and `sudo journalctl -u motioneye -e` shows motionEye's.
 
 A few words you will meet: `sudo` runs a command as the administrator, `systemctl` starts, stops and enables services, `journalctl` reads the logs, and `crontab` holds scheduled jobs.
 

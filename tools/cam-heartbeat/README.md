@@ -8,6 +8,14 @@ cam-heartbeat: temp=46.7C throttled=0x0 load=0.52 0.34 0.34 memavail=3166MB
 
 Useful when a camera "goes dead": if heartbeats continue, the OS was alive and the problem is the network or the camera; the last heartbeat before a reboot shows the conditions at that moment.
 
+Install in one go, from this folder (it does exactly the steps below, and is safe to run again):
+
+```sh
+sudo ./install.sh
+```
+
+`./install.sh --dry-run` only prints what it would do. By hand:
+
 ```sh
 sudo install -m 755 cam-heartbeat /usr/local/sbin/cam-heartbeat
 (sudo crontab -l 2>/dev/null; echo '* * * * * /usr/local/sbin/cam-heartbeat') | sudo crontab -
@@ -21,3 +29,5 @@ It needs a persistent journal, otherwise everything before a reboot is lost: see
 `throttled` is the `vcgencmd get_throttled` bitmask: `0x0` is clean; bit 0 (`0x1`) means under-voltage right now, bit 16 (`0x10000`) means under-voltage happened since boot.
 
 Background: [docs/howto/heartbeat.md](../../docs/howto/heartbeat.md), [docs/troubleshooting/wifi-drops.md](../../docs/troubleshooting/wifi-drops.md).
+
+Undo: `sudo ./install.sh --uninstall` (removes the crontab line and the script; old lines stay in the journal).
