@@ -6,14 +6,32 @@
 
 `tools/picam-mjpeg/picam-mjpeg.service` runs the server under systemd.
 
-### Why not point motion at /dev/video0?
+### Do you need a bridge at all? Try the shim first
 
-On current Raspberry Pi OS the CSI camera is driven by libcamera. `/dev/video0` gives raw Bayer data straight from the sensor, and motion 4.7 only partly supports it. That path skips the Pi's image signal processor (ISP). On our cameras this caused two lasting faults:
+On current Raspberry Pi OS the CSI camera is driven by libcamera, and motion 4.7 can read it through the
+`libcamerify` shim: start motion (or the whole of motionEye) under `libcamerify`, point the camera at
+`/dev/video0`, and libcamera hands motion a processed YUV picture through the Pi's image signal processor.
+Measured on a Pi 4 (Trixie, kernel 6.18, motion 4.7.1, IMX219, 2 fps): motion under the shim uses 5-8 % of
+one core, libcamera's work included. The bridge path on the same box uses about 17-20 % (the bridge 5-7 %
+plus motion 11-15 % decoding the MJPEG), so for one local motionEye the shim is simpler and cheaper.
 
-- A plaid, checkerboard texture. There was no lens shading correction, no auto white balance and only a basic debayer.
-- A green stripe down the right edge. The sensor rows are padded (the IMX219's 1640-wide mode has a stride of 1664) and motion showed the padding. No width setting fixes this on the raw path.
+Two rules for the shim path:
 
-Through Picamera2 the picture goes through the ISP. It comes out at the exact size you asked for, fully corrected.
+- **Use a width that is a multiple of 32** (1600x1200, 1280x960, 640x480). With 1640x1232 motion pads the
+  rows to the 1664-byte stride and shows the padding as a green stripe down the right edge. We lived with
+  that stripe for months before finding the cause.
+- **Wrap the whole motionEye service**, not just motion, so the camera detection sees the shim too:
+  `ExecStart=/usr/bin/libcamerify /usr/local/bin/meyectl startserver -c /etc/motioneye/motioneye.conf`
+  in the unit (`sudo systemctl edit --full motioneye`). Our cameras have run that way since July.
+
+Pointing motion at `/dev/video0` *without* the shim is what does not work: that path skips the image
+processor and gives raw Bayer data, which motion only partly supports (a plaid texture, no white balance).
+
+### When the bridge still earns its place
+
+- The camera stays open while motion restarts; through the shim every motion restart reopens it.
+- More than one reader: a browser, another machine or a recorder can read the stream while motion does.
+- The JPEG is made by the Pi's hardware encoder, which matters on a Pi Zero 2 W.
 
 ### Why not rpicam-vid | ffmpeg | v4l2loopback?
 
