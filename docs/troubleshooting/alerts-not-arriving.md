@@ -15,7 +15,7 @@ motionEye sends alerts by running `meyectl.py sendmail` and `meyectl.py sendtele
 
 ### Why a failure leaves no trace
 
-The senders print what happened, but it does not reach the journal. A 7-day search of the journal here found none of their messages. On motionEye 0.44.0 their output goes to `motion.log`, which starts empty every time motion starts. On current dev, motion's own output goes to `/dev/null` when syslog is available (as on a normal Raspberry Pi OS install), and the senders inherit that. The number of attached pictures is only logged at debug level. On 0.44.0, debug logging also writes the SMTP password and the Telegram bot token into the logs, so do not turn it on.
+On motionEye 0.44.0 the senders print what happened, but it does not reach the journal. Their output goes to `motion.log`, which starts empty every time motion starts. On dev, the coming 0.45.0, their messages reach the journal under the `meyectl` tag on systems with syslog ([#3456](https://github.com/motioneye-project/motioneye/pull/3456)). The number of attached pictures is only logged at debug level. On 0.44.0, debug logging also writes the SMTP password and the Telegram bot token into the logs, so do not turn it on.
 
 To make every attempt visible, wrap the senders with [`tools/motioneye-notify/`](../../tools/motioneye-notify/). It logs one line per attempt. Details: [Log notification outcomes](../howto/log-notification-outcomes.md).
 
@@ -24,11 +24,14 @@ To make every attempt visible, wrap the senders with [`tools/motioneye-notify/`]
 1. **The Pi lost its network for a while.** Both channels fail for the same event, after a long wait (74-196 s here). See [Wi-Fi drops](./wifi-drops.md).
 2. **The picture listing was too slow.** motionEye 0.44.0 lists the whole day's picture folder for every alert. With a snapshot every 5 s, that folder grows by about 720 files an hour. Around midday the listing took longer than its limit (`list_media_timeout_email` and `list_media_timeout_telegram` in `/etc/motioneye/motioneye.conf`, 10 s by default). The sender then crashed because the listing returned no result, and no alert went out. A new day folder at midnight made the mornings work again. On a Pi 4 with 57,093 files, listing the whole folder took 63 s. Listing only the event window took 1.5 s.
 3. **DNS lookups failing on one camera.** For a moment the mail server's name could not be looked up, so the email failed quickly while the Telegram message a few seconds later got through. See the cam-a example below.
+4. **Telegram itself was slow.** On two afternoons (2026-10-31 and 2026-11-01), Telegram took minutes to post pictures to the camera group, for every camera that alerted in those minutes. Small API calls stayed fast, and every email went through. Some pictures were posted minutes late, after the camera had given up on them. Others never arrived: Telegram's bot server drops a request it hasn't answered after about 500 s, and no camera setting brings those back. On dev the sender gives up on a picture after 60 s without an answer; 0.44.0 waits until Telegram's server gives up, and still logs `sent`.
 
-### Upstream fixes (in motionEye dev, 0.45.0a1; not in 0.44.0)
+### Upstream fixes (in motionEye dev, coming in 0.45.0; not in 0.44.0)
 
 - [#3413](https://github.com/motioneye-project/motioneye/pull/3413): send the alert even when the picture listing fails. A slow listing then costs the pictures, not the whole alert.
 - [#3426](https://github.com/motioneye-project/motioneye/pull/3426): keep notification secrets off the command line. The SMTP password and the Telegram token move into the camera config, and motionEye rewrites `on_event_start` into a short form at first start. The wrapper understands both forms. Run the heal script after the upgrade (see Fix).
+- [#3457](https://github.com/motioneye-project/motioneye/pull/3457): Telegram's answer is checked, so a rejected or failed Telegram alert is logged as failed instead of sent.
+- [#3511](https://github.com/motioneye-project/motioneye/pull/3511): after a failed Telegram request, the next ones use a new connection, and one failed picture no longer stops the others. Before, the retry went into the same stalled connection.
 - Related: [#3414](https://github.com/motioneye-project/motioneye/pull/3414) and [#3425](https://github.com/motioneye-project/motioneye/pull/3425) make email and Telegram list only the pictures inside the time window. That makes cause 2 much less likely.
 
 ## Check
@@ -77,6 +80,7 @@ sudo journalctl -u NetworkManager --since "$S" --until "$U" -q | grep -iE 'state
 
 - **Mail failed quickly, but Telegram for the same event got through:** the link was up, but read the `error=` line before you blame the mail path. `Temporary failure in name resolution` means the DNS lookup of the mail server failed: a network-side problem on this camera. Otherwise suspect the mail server, this camera's mail settings, or its sender code.
 - **`listing-timeout` or `crash-nonetype`:** not the network. See cause 2.
+- **Telegram failed, or took minutes, on several cameras in the same minutes, while email went through:** Telegram's side. See cause 4. On 0.44.0 such alerts show as `sent` with a long `secs` (several minutes), so look at `secs`, not only `result`.
 - **Then compare with another camera that uses the same mail server.** Run this on both Pis for the same window:
 
 ```sh
@@ -147,9 +151,9 @@ Expect one `result=sent` line per channel. After you save notification settings 
 ## Limits and open questions
 
 - The wrapper only sees senders that actually ran. If motion never ran the command (for example right after a restart), there is no line at all. Compare the number of events with the number of result lines.
-- `result=sent` means the sender reported success. What happens after that (mail filters, the phone) is outside its view.
+- `result=sent` means the sender reported success. What happens after that (mail filters, the phone) is outside its view. On 0.44.0 the Telegram sender does not check Telegram's answer at all, so `sent` there only means the request ended: on 2026-11-01, four alerts that cam-d logged as `sent` never reached the chat.
 - The classification matches the senders' English messages ("email sent", "failed to send"). If upstream changes the wording, results may show up as `unknown`.
 - The `error=` redaction is pattern matching. Read the line before you share it.
 - Nothing here warns you when alerts fail. Check the summary now and then.
 - Why cam-a's DNS lookups and connections fail now and then is not known yet. Its Wi-Fi is the weakest in this setup; see [Wi-Fi drops](./wifi-drops.md).
-- #3413 and #3426 are in motionEye dev (0.45.0a1). They are not in 0.44.0.
+- #3413, #3426, #3457 and #3511 are in motionEye dev, coming in 0.45.0. They are not in 0.44.0.

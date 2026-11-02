@@ -109,6 +109,17 @@ Keep the snapshot interval and widen the window. With 30 s snapshots, ±15 s sho
 
 Cost: the pictures are further from the moment of motion, and every alert is sent later. The sender waits one time span before it lists the pictures, so ±30 s means each alert leaves about 30 s after the event. This option was not tested here.
 
+### Option C: shorter time span, for faster alerts
+
+The time span also sets how long an alert takes. motion runs the email sender first and the Telegram sender only after the email one has finished, and each waits one time span before it lists the pictures. Measured with test events on the Pi 4s with motionEye dev, snapshots every 5 s:
+
+| Both time spans | Email sent | Telegram pictures posted | Pictures per alert |
+|---|---|---|---|
+| 10 s (cam-a, cam-c) | 13.6-14.8 s after motion started | 32-38 s | 4 |
+| 5 s (cam-c) | 8.7 s | 20.6 s | 2 |
+
+The Telegram time is when Telegram confirmed the last picture, which is when it shows in the chat. Cost: half the pictures, from a narrower window around the event.
+
 ### Not recommended
 
 `picture_output first` or `on`. See the trap above.
@@ -125,5 +136,6 @@ Cost: the pictures are further from the moment of motion, and every alert is sen
 - The count looks in `/var/lib/motioneye/*/<day>` for all cameras on the Pi. With more than one local camera, the counts are mixed. With a different media path it always shows `-`.
 - The formula assumes interval snapshots only. Where the event falls between two snapshots can change the count by one (at 5 s here: 987 of 992 alerts had 4, 3 had 5, 1 had 3). One cam-a alert had only 2, which the formula does not explain.
 - Option B was not tested here.
+- Option C comes from test alerts on 2026-11-01: three at 10 s on cam-a and cam-c, one at 5 s on cam-c.
 - The 5 s numbers come from four cameras over 7 days. The 30 s numbers come from cam-d over one day, when its alerts had one picture. The 0 in the 30 s row comes from the formula. The 10 s row in the table comes from the formula, not from a test here.
 - The load cost of 5 s against 30 s is not measured. We have load numbers at 5 s only.

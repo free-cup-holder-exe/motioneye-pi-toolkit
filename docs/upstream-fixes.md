@@ -1,11 +1,12 @@
 # Fixes contributed upstream
 
-Twenty-three fixes to [motionEye](https://github.com/motioneye-project/motioneye)
+Thirty-four changes to [motionEye](https://github.com/motioneye-project/motioneye)
 came out of running this setup. Most started as a problem seen on these
 cameras. Some (#3416, #3443, #3444, #3445) started from other users' reports.
 
-**Status of all 23:** merged into motionEye's `dev` branch and planned for
-the next release, **0.45.0**. None of them are in 0.44.0.
+**Status of all 34:** merged into motionEye's `dev` branch and planned for
+the next release, **0.45.0**. None of them are in 0.44.0. One more is still
+open; see [Open](#open).
 
 ## Notifications
 
@@ -15,7 +16,9 @@ the next release, **0.45.0**. None of them are in 0.44.0.
 | [#3425](https://github.com/motioneye-project/motioneye/pull/3425) | Telegram alerts only look at pictures in the alert's time span, like email alerts. A big day folder no longer makes them time out and arrive without pictures. | 2026-09-30 |
 | [#3428](https://github.com/motioneye-project/motioneye/pull/3428) | Telegram alert pictures arrive oldest first, the same order as email. | 2026-10-01 |
 | [#3426](https://github.com/motioneye-project/motioneye/pull/3426) | The SMTP password and Telegram bot token are no longer on motion's command line, so they stay out of the process list and out of `motion.log` at debug level. They are kept in the camera's config file instead. | 2026-10-05 |
-| [#3457](https://github.com/motioneye-project/motioneye/pull/3457) | A Telegram alert that Telegram rejects (wrong chat id or token) is logged as failed, and the test button in the UI says so. Before, both said sent. A request that hangs times out and is retried once. | 2026-10-15 |
+| [#3457](https://github.com/motioneye-project/motioneye/pull/3457) | A Telegram alert that Telegram rejects (wrong chat id or token) is logged as failed, and the test button in the UI says so. Before, both said sent. A request that gets no data for 60 s is given up instead of hanging. | 2026-10-15 |
+| [#3479](https://github.com/motioneye-project/motioneye/pull/3479) | Email alerts sent with "Use TLS" check the mail server's certificate, host name included. Before, any certificate was accepted. For a relay with a self-signed certificate, or one entered by IP address, turn off the new "Verify certificate" switch under "Use TLS". | 2026-10-27 |
+| [#3511](https://github.com/motioneye-project/motioneye/pull/3511) | After a failed Telegram request, the next ones use a new connection, and one failed picture no longer stops the others. A picture that was already sent is not sent again, so a lost reply no longer posts it twice. | 2026-11-01 |
 
 ## Configuration, passwords and the camera list
 
@@ -26,6 +29,25 @@ the next release, **0.45.0**. None of them are in 0.44.0.
 | [#3421](https://github.com/motioneye-project/motioneye/pull/3421) | One offline camera behind a remote motionEye no longer breaks the whole camera list. It shows as "Connection failed" and the other cameras load. | 2026-10-01 |
 | [#3458](https://github.com/motioneye-project/motioneye/pull/3458) | Extra `netcam_params` entries added through Extra Options (for example motion's `decoder` for hardware decoding) survive a save. Before, motionEye kept only its own keepalive, tolerant-check and RTSP-transport settings and dropped the rest. | 2026-10-15 |
 | [#3459](https://github.com/motioneye-project/motioneye/pull/3459) | An error a remote motionEye reports inside a 200 answer (a failed notification test, a delete, a save behind two hubs) shows as an error on the hub. Before, the hub reported success, and a failed movie download through two hubs was cached as if it were the movie. | 2026-10-16 |
+| [#3480](https://github.com/motioneye-project/motioneye/pull/3480) | A hub no longer saves a remote camera's "Connection failed" placeholder as that camera's settings. Home Assistant posts it back when it loads, which left the camera disabled on the hub after the remote was reachable again. | 2026-10-27 |
+| [#3481](https://github.com/motioneye-project/motioneye/pull/3481) | A hub running 0.44 can save a remote camera that runs the new version. On dev, the whole save failed with an internal server error, because the 0.44 form lacks three upload settings added since. | 2026-10-27 |
+| [#3501](https://github.com/motioneye-project/motioneye/pull/3501) | Each camera file records the motionEye version that saved it, so a step of an upgrade runs once for that camera instead of on every start. | 2026-10-31 |
+
+## Certificates and uploads
+
+| PR | What changes for you | Merged into dev |
+|---|---|---|
+| [#3472](https://github.com/motioneye-project/motioneye/pull/3472) | The FTP upload service gets a "Use TLS (FTPS)" switch, off by default, with a "Verify certificate" switch for a server with a self-signed certificate. | 2026-10-25 |
+| [#3473](https://github.com/motioneye-project/motioneye/pull/3473) | The upload service's Test button no longer ends its success message with "[object Object]". | 2026-10-25 |
+| [#3476](https://github.com/motioneye-project/motioneye/pull/3476) | The global `validate_certs` option is gone: every HTTPS connection checks the certificate. A remote motionEye camera gets its own "Verify certificate" switch, for a remote with a self-signed certificate. | 2026-10-26 |
+| [#3477](https://github.com/motioneye-project/motioneye/pull/3477) | WebDAV and S3 uploads to an `https://` endpoint, and each webhook, get their own "Verify certificate" switch. | 2026-10-27 |
+
+## Testing
+
+| PR | What changes for you | Merged into dev |
+|---|---|---|
+| [#3486](https://github.com/motioneye-project/motioneye/pull/3486) | Tests pin the 130 camera settings a hub running 0.44 sends, so a newer remote keeps accepting them. | 2026-10-29 |
+| [#3493](https://github.com/motioneye-project/motioneye/pull/3493) | Every pull request now runs a hub and a remote of different motionEye versions together, in both directions. | 2026-10-30 |
 
 ## Adding cameras
 
@@ -97,11 +119,25 @@ Notes from the PR descriptions:
   `motion.log`.
 - **#3457:** A Telegram setup that never worked now says so: the test button
   reports the failure instead of "sent". Check the chat id and token.
+- **#3476, #3477, #3479:** Certificates are checked everywhere now, and a
+  `validate_certs` line in `motioneye.conf` is ignored with a warning. For a
+  self-signed certificate, or a server entered by IP address, turn off
+  "Verify certificate" for that remote camera, upload service, webhook, or
+  for email under "Use TLS". Email with "Use TLS" did not check certificates
+  at all before, so a relay that worked on 0.44 can stop until you do.
+- **#3501:** After going back to 0.44, email and Telegram show as off and
+  must be entered again, as #3426 says. Upgrading again moves them back.
 
 ## Getting them before 0.45.0
 
-All 23 are on `dev` today. To
+All 34 are on `dev` today. To
 run `dev` before the release, see the
 [canary testing guide](howto/canary-testing-dev.md). Start with one camera
 you can afford to lose for a while, and keep a way back to the release you
 run now.
+
+## Open
+
+| PR | What changes for you | Status |
+|---|---|---|
+| [#3516](https://github.com/motioneye-project/motioneye/pull/3516) | motionEye uses Tornado's own HTTP client instead of curl's, one step towards dropping the `pycurl` dependency. The add-camera test answers a digest login itself and reports a redirect instead of following it. A hub opens a new connection for every request to a remote camera, a few ms more per frame on a LAN. | open since 2026-11-01 |
