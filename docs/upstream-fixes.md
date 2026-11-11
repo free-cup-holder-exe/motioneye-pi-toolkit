@@ -1,12 +1,12 @@
 # Fixes contributed upstream
 
-Thirty-four changes to [motionEye](https://github.com/motioneye-project/motioneye)
+Thirty-five changes to [motionEye](https://github.com/motioneye-project/motioneye)
 came out of running this setup. Most started as a problem seen on these
 cameras. Some (#3416, #3443, #3444, #3445) started from other users' reports.
 
-**Status of all 34:** merged into motionEye's `dev` branch and planned for
-the next release, **0.45.0**. None of them are in 0.44.0. One more is still
-open; see [Open](#open).
+**Status of all 35:** merged into motionEye's `dev` branch and planned for
+the next release, **0.45.0**. None of them are in 0.44.0. Three more are
+still open; see [Open](#open).
 
 ## Notifications
 
@@ -93,6 +93,12 @@ retention short.
 |---|---|---|
 | [#3416](https://github.com/motioneye-project/motioneye/pull/3416) | On Python 3.14, cleanup deletes old media again, zip downloads use the right media folder, and background processes keep their log lines. See [the investigation](investigations/python-3.14-forkserver.md). | 2026-09-14 |
 
+## Dependencies
+
+| PR | What changes for you | Merged into dev |
+|---|---|---|
+| [#3516](https://github.com/motioneye-project/motioneye/pull/3516) | motionEye uses Tornado's own HTTP client instead of curl's, so it no longer needs `pycurl` for its own requests. The add-camera test answers a digest login itself and reports a redirect instead of following it. A hub opens a new connection for every request to a remote camera, a few ms more per frame on a LAN. | 2026-11-10 |
+
 ## Before you upgrade to 0.45.0
 
 Notes from the PR descriptions:
@@ -127,10 +133,15 @@ Notes from the PR descriptions:
   at all before, so a relay that worked on 0.44 can stop until you do.
 - **#3501:** After going back to 0.44, email and Telegram show as off and
   must be entered again, as #3426 says. Upgrading again moves them back.
+- **#3516:** `pycurl` is now used for SFTP uploads only and `boto3` for S3
+  uploads only, and since #3535 neither is installed with motionEye. An
+  upgrade keeps what is already installed. On a new install that uses those
+  uploads, add them with `pip install 'motioneye[s3,sftp]'`; without them
+  the upload test says what to install.
 
 ## Getting them before 0.45.0
 
-All 34 are on `dev` today. To
+All 35 are on `dev` today. To
 run `dev` before the release, see the
 [canary testing guide](howto/canary-testing-dev.md). Start with one camera
 you can afford to lose for a while, and keep a way back to the release you
@@ -140,4 +151,6 @@ run now.
 
 | PR | What changes for you | Status |
 |---|---|---|
-| [#3516](https://github.com/motioneye-project/motioneye/pull/3516) | motionEye uses Tornado's own HTTP client instead of curl's, one step towards dropping the `pycurl` dependency. The add-camera test answers a digest login itself and reports a redirect instead of following it. A hub opens a new connection for every request to a remote camera, a few ms more per frame on a LAN. | open since 2026-11-01 |
+| [#3538](https://github.com/motioneye-project/motioneye/pull/3538) | At most two media listings run at a time (`list_media_max_parallel`), and the others wait their turn. Before, every request for a media list started its own copy of the server process, so a client that asked for many cameras at once could run a small board or a container out of memory. | open since 2026-11-09 |
+| [#3539](https://github.com/motioneye-project/motioneye/pull/3539) | The media list is read while the listing runs, instead of being checked twice a second. On a Pi 4, a day folder of about 17,000 pictures lists in about 1.3 s instead of 18 s. | open since 2026-11-10 |
+| [#3540](https://github.com/motioneye-project/motioneye/pull/3540) | Telegram alerts get a "Send the text first" switch, off by default: the text goes out as soon as motion is detected, and the pictures follow as replies once their time span is over. | open since 2026-11-10 |
