@@ -1,12 +1,13 @@
 # Fixes contributed upstream
 
-Thirty-five changes to [motionEye](https://github.com/motioneye-project/motioneye)
+Thirty-seven changes to [motionEye](https://github.com/motioneye-project/motioneye)
 came out of running this setup. Most started as a problem seen on these
-cameras. Some (#3416, #3443, #3444, #3445) started from other users' reports.
+cameras. Some (#3416, #3443, #3444, #3445, #3538) started from other users'
+reports.
 
-**Status of all 35:** merged into motionEye's `dev` branch and planned for
-the next release, **0.45.0**. None of them are in 0.44.0. Three more are
-still open; see [Open](#open).
+**Status of all 37:** merged into motionEye's `dev` branch and planned for
+the next release, **0.45.0**. None of them are in 0.44.0. One more is still
+open; see [Open](#open).
 
 ## Notifications
 
@@ -19,6 +20,7 @@ still open; see [Open](#open).
 | [#3457](https://github.com/motioneye-project/motioneye/pull/3457) | A Telegram alert that Telegram rejects (wrong chat id or token) is logged as failed, and the test button in the UI says so. Before, both said sent. A request that gets no data for 60 s is given up instead of hanging. | 2026-10-15 |
 | [#3479](https://github.com/motioneye-project/motioneye/pull/3479) | Email alerts sent with "Use TLS" check the mail server's certificate, host name included. Before, any certificate was accepted. For a relay with a self-signed certificate, or one entered by IP address, turn off the new "Verify certificate" switch under "Use TLS". | 2026-10-27 |
 | [#3511](https://github.com/motioneye-project/motioneye/pull/3511) | After a failed Telegram request, the next ones use a new connection, and one failed picture no longer stops the others. A picture that was already sent is not sent again, so a lost reply no longer posts it twice. | 2026-11-01 |
+| [#3540](https://github.com/motioneye-project/motioneye/pull/3540) | Telegram alerts get a "Send the text first" switch, off by default: the text goes out as soon as motion is detected, and the pictures follow as replies once their time span is over. | 2026-11-11 |
 
 ## Configuration, passwords and the camera list
 
@@ -82,6 +84,7 @@ Until these ship, [Adding a camera fails, hangs or accepts a wrong password](tro
 | [#3414](https://github.com/motioneye-project/motioneye/pull/3414) | Email alerts list only the pictures in the alert's time window, not the whole day folder. On a Pi 4 with 57,093 files the listing went from 63.3 s to 1.5 s, well inside the default 10 s timeout. | 2026-09-10 |
 | [#3454](https://github.com/motioneye-project/motioneye/pull/3454) | The 12-hourly cleanup of old media checks each folder once instead of after every file it deletes. With 5 s snapshots a day folder holds 17,280 stills, and the old way grew with the square of that. | 2026-10-15 |
 | [#3460](https://github.com/motioneye-project/motioneye/pull/3460) | The camera list asks all remote cameras at the same time. Each remote that didn't answer used to add its full timeout (10 s by default): five remotes with three unreachable took 30 s and now take 10 s. | 2026-10-15 |
+| [#3538](https://github.com/motioneye-project/motioneye/pull/3538) | The server runs at most two media listings at a time by default (`list_media_max_parallel`), and the others wait their turn. Before, every request for a media list started its own copy of the server process, so a client that asked for many cameras at once could run a small board or a container out of memory. The listings that email and Telegram alerts make for their pictures run in their own processes and are not counted. | 2026-11-11 |
 
 This does not make huge folders free. On a Pi Zero 2 W with about 77,000
 files the windowed listing still took 10.6 s. On small boards, keep media
@@ -138,10 +141,13 @@ Notes from the PR descriptions:
   upgrade keeps what is already installed. On a new install that uses those
   uploads, add them with `pip install 'motioneye[s3,sftp]'`; without them
   the upload test says what to install.
+- **#3538:** A media list that has to wait for a free slot can wait up to
+  one `list_media_timeout` before it starts, on top of its own timeout. To
+  let more run at once, raise `list_media_max_parallel` in `motioneye.conf`.
 
 ## Getting them before 0.45.0
 
-All 35 are on `dev` today. To
+All 37 are on `dev` today. To
 run `dev` before the release, see the
 [canary testing guide](howto/canary-testing-dev.md). Start with one camera
 you can afford to lose for a while, and keep a way back to the release you
@@ -151,6 +157,4 @@ run now.
 
 | PR | What changes for you | Status |
 |---|---|---|
-| [#3538](https://github.com/motioneye-project/motioneye/pull/3538) | At most two media listings run at a time (`list_media_max_parallel`), and the others wait their turn. Before, every request for a media list started its own copy of the server process, so a client that asked for many cameras at once could run a small board or a container out of memory. | open since 2026-11-09 |
 | [#3539](https://github.com/motioneye-project/motioneye/pull/3539) | The media list is read while the listing runs, instead of being checked twice a second. On a Pi 4, a day folder of about 17,000 pictures lists in about 1.3 s instead of 18 s. | open since 2026-11-10 |
-| [#3540](https://github.com/motioneye-project/motioneye/pull/3540) | Telegram alerts get a "Send the text first" switch, off by default: the text goes out as soon as motion is detected, and the pictures follow as replies once their time span is over. | open since 2026-11-10 |
