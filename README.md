@@ -34,6 +34,8 @@ You need a Raspberry Pi running Raspberry Pi OS with motionEye already working, 
 
    `./install.sh --list` shows the tools, `./install.sh --dry-run <tool>` only prints what would be done, and `sudo ./install.sh --uninstall <tool>` undoes it. The tool pages show the same steps by hand.
 
+   Only download from the two addresses above: the `main` branch of this repo is the one official source. Don't run an installer from a link in an issue, from a fork or from a commit page, even when the page shows this repo's name.
+
 3. **Install one tool at a time, in this order,** and check each one works before the next:
    1. [Keep logs across reboots](tools/journald): without it, everything from before a crash is lost.
    2. [Heartbeat](tools/cam-heartbeat): one line a minute that proves the Pi was alive.
