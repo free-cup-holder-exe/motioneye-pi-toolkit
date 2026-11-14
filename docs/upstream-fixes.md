@@ -1,13 +1,12 @@
 # Fixes contributed upstream
 
-Thirty-seven changes to [motionEye](https://github.com/motioneye-project/motioneye)
+Thirty-eight changes to [motionEye](https://github.com/motioneye-project/motioneye)
 came out of running this setup. Most started as a problem seen on these
 cameras. Some (#3416, #3443, #3444, #3445, #3538) started from other users'
 reports.
 
-**Status of all 37:** merged into motionEye's `dev` branch and planned for
-the next release, **0.45.0**. None of them are in 0.44.0. One more is still
-open; see [Open](#open).
+**Status of all 38:** merged into motionEye's `dev` branch and planned for
+the next release, **0.45.0**. None of them are in 0.44.0.
 
 ## Notifications
 
@@ -85,6 +84,7 @@ Until these ship, [Adding a camera fails, hangs or accepts a wrong password](tro
 | [#3454](https://github.com/motioneye-project/motioneye/pull/3454) | The 12-hourly cleanup of old media checks each folder once instead of after every file it deletes. With 5 s snapshots a day folder holds 17,280 stills, and the old way grew with the square of that. | 2026-10-15 |
 | [#3460](https://github.com/motioneye-project/motioneye/pull/3460) | The camera list asks all remote cameras at the same time. Each remote that didn't answer used to add its full timeout (10 s by default): five remotes with three unreachable took 30 s and now take 10 s. | 2026-10-15 |
 | [#3538](https://github.com/motioneye-project/motioneye/pull/3538) | The server runs at most two media listings at a time by default (`list_media_max_parallel`), and the others wait their turn. Before, every request for a media list started its own copy of the server process, so a client that asked for many cameras at once could run a small board or a container out of memory. The listings that email and Telegram alerts make for their pictures run in their own processes and are not counted. | 2026-11-11 |
+| [#3539](https://github.com/motioneye-project/motioneye/pull/3539) | The media list is read while the listing runs, instead of being checked twice a second. On a Pi 4, a day folder of about 17,000 pictures lists in about 1.3 s instead of 18 s. | 2026-11-13 |
 
 This does not make huge folders free. On a Pi Zero 2 W with about 77,000
 files the windowed listing still took 10.6 s. On small boards, keep media
@@ -144,17 +144,16 @@ Notes from the PR descriptions:
 - **#3538:** A media list that has to wait for a free slot can wait up to
   one `list_media_timeout` before it starts, on top of its own timeout. To
   let more run at once, raise `list_media_max_parallel` in `motioneye.conf`.
+- **#3539:** A picture listing whose helper process died gives no list
+  rather than a partial one, so that alert goes out without pictures. The
+  alert log then says `picture listing failed; sending notification without
+  pictures`; the hint to raise `list_media_timeout_email` or
+  `list_media_timeout_telegram` only appears after a real timeout.
 
 ## Getting them before 0.45.0
 
-All 37 are on `dev` today. To
+All 38 are on `dev` today. To
 run `dev` before the release, see the
 [canary testing guide](howto/canary-testing-dev.md). Start with one camera
 you can afford to lose for a while, and keep a way back to the release you
 run now.
-
-## Open
-
-| PR | What changes for you | Status |
-|---|---|---|
-| [#3539](https://github.com/motioneye-project/motioneye/pull/3539) | The media list is read while the listing runs, instead of being checked twice a second. On a Pi 4, a day folder of about 17,000 pictures lists in about 1.3 s instead of 18 s. | open since 2026-11-10 |
