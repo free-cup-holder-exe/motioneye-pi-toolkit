@@ -16,8 +16,10 @@ sudo ./install.sh
 sudo install -d /etc/systemd/journald.conf.d
 sudo install -m 644 99-persistent.conf /etc/systemd/journald.conf.d/99-persistent.conf
 sudo systemctl restart systemd-journald
+sudo journalctl --flush                # move the log from memory to the card now
+sudo systemd-tmpfiles --create --prefix /var/log/journal   # the permissions a boot would set
+sudo journalctl --header | grep 'File path'   # must start with /var/log/journal
 journalctl --list-boots | tail -3      # after the next reboot you should see more than one boot
-ls /var/log/journal                    # exists once the journal is persistent
 ```
 
 `SystemMaxUse=200M` caps the space it uses; on a very small or busy card, lower it.

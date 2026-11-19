@@ -50,7 +50,11 @@ It is safe to run again, `sudo bash install.sh --uninstall journald` undoes it, 
 sudo mkdir -p /etc/systemd/journald.conf.d
 sudo install -m 644 -o root -g root tools/journald/99-persistent.conf /etc/systemd/journald.conf.d/99-persistent.conf
 sudo systemctl restart systemd-journald
+sudo journalctl --flush
+sudo systemd-tmpfiles --create --prefix /var/log/journal
 ```
+
+Without the flush the journal stays in memory until the next reboot. The last line gives the new folder the permissions a boot would, so users in the `adm` group can read it without `sudo`.
 
 ## Check it works
 

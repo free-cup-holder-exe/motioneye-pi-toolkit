@@ -10,13 +10,17 @@ cd "$(dirname "$0")"
 if [ "$MODE" = uninstall ]; then
     remove_files /etc/systemd/journald.conf.d/99-persistent.conf
     run systemctl restart systemd-journald
-    say "removed; the journal is volatile again after the next reboot"
+    say "removed; the journal is back in RAM (the old files stay in /var/log/journal)"
     exit 0
 fi
 
 run install -d /etc/systemd/journald.conf.d
 run install -m 644 99-persistent.conf /etc/systemd/journald.conf.d/99-persistent.conf
 run systemctl restart systemd-journald
+# move the log from memory to the card now, not only at the next boot
+run journalctl --flush
+# give the new folder the group and ACLs a boot would, so adm users can read it without sudo
+run systemd-tmpfiles --create --prefix /var/log/journal
 if [ -z "$DRY" ]; then
     say "boots kept so far: $(journalctl --list-boots 2>/dev/null | wc -l) (grows with every reboot from now on)"
 fi

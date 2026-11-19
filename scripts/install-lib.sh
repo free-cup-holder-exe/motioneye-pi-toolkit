@@ -49,7 +49,8 @@ cron_add() {
     fi
     echo "+ crontab: add '$1'"
     if [ -z "$DRY" ]; then
-        (crontab -l 2>/dev/null; echo "$1") | crontab -
+        # crontab -l fails while there is no crontab yet; under set -e that must not end the group
+        { crontab -l 2>/dev/null || true; echo "$1"; } | crontab -
     fi
 }
 
