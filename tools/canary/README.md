@@ -34,6 +34,7 @@ sudo systemctl start motioneye
 Notes:
 
 - Build the wheel on a PC, not on the Pi: building from source on Raspberry Pi OS failed here because the system has no setuptools for pip's build backend, and installing it system-wide is not worth it.
+- A wheel built on Windows carries no Unix file modes, so motionEye's scripts arrive without their executable bit and motion cannot run `relayevent.sh`: movies get no preview, uploads stop and motionEye misses the start and end of events, while alerts still go out. `canary-deploy.sh` puts the bit back and says so; it also prints the mode of `relayevent.sh` (expect `755`).
 - Always rebuild the canary branch from a fresh `dev` plus your branches. Merging an updated PR branch into an old canary once produced a silent bad merge (a call duplicated).
 - A version like `0.45.0a1.dev…` sorts below `0.45.0a1`, and `pip install --upgrade` without `--pre` ignores pre-releases, so a nightly upgrade does not replace the canary until a newer stable release exists.
 

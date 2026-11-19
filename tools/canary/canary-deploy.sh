@@ -38,9 +38,16 @@ echo "backup: $B ($(du -sh "$B" | cut -f1)), dist-info: $DI"
 echo "wheel: $(basename "$W") sha256=$(sha256sum "$W" | cut -c1-12)"
 systemctl stop motioneye
 $PY -m pip install --no-deps $BSP "$W" 2>&1 | tail -1
+# a wheel built on Windows has no Unix modes: motionEye's scripts then lose their executable bit,
+# and motion can no longer run relayevent.sh (no movie previews, no uploads, no event start/stop for motionEye)
+X=$(find "$SP/motioneye" -type f \( -name '*.sh' -o -name linux_init -o -name freebsd_init -o -name motioneye.rc -o -name motioneye.sysv -o -name meyectl.py -o -name motioneye_init.py \) ! -perm -u+x)
+if [ -n "$X" ]; then
+    echo "$X" | xargs chmod 755
+    echo "made $(echo "$X" | wc -l) scripts executable again (the wheel had no file modes; built on Windows?)"
+fi
 systemctl start motioneye
 web
-echo "after: motionEye $($PY -c 'import motioneye; print(motioneye.VERSION)')"
+echo "after: motionEye $($PY -c 'import motioneye; print(motioneye.VERSION)') | relayevent.sh $(stat -c %a "$SP/motioneye/scripts/relayevent.sh")"
 
 if [ -x /usr/local/sbin/motioneye-notify-heal ]; then
     echo "heal: $(/usr/local/sbin/motioneye-notify-heal)"

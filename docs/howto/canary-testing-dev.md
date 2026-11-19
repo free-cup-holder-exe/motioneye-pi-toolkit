@@ -58,6 +58,8 @@ python -m pip wheel --no-deps -w canary-wheel ./canary-build
 
 You get one pure-Python wheel, `motioneye-<version>-py3-none-any.whl`. Built on Windows, its METADATA file may have CRLF endings. That is harmless.
 
+Built on Windows, the wheel also has no Unix file modes. pip then installs motionEye's scripts without their executable bit, and motion cannot run `relayevent.sh`: movies get no preview image, uploads to a cloud service stop, and motionEye misses the start and end of events. Alerts still go out, so nothing looks broken. `canary-deploy.sh` puts the bit back after installing and tells you when it had to. Built on Linux or macOS (or in WSL, in its own Linux file system rather than under `/mnt/c`), the modes come through as they are in git.
+
 ### 4. Copy and install
 
 ```sh
@@ -69,10 +71,10 @@ The script:
 
 1. stops right away if there is no `motioneye-*.whl` in `/tmp`,
 2. backs up the installed package (`motioneye/` and its `.dist-info`) and `/etc/motioneye` to `/root/canary-backup-<timestamp>/`, and stops if the backup failed,
-3. stops motionEye, runs `pip install --no-deps` on the wheel (with `--break-system-packages` for the system Python), and starts motionEye,
+3. stops motionEye, runs `pip install --no-deps` on the wheel (with `--break-system-packages` for the system Python), makes motionEye's scripts executable again if the wheel had no file modes (see "Build a wheel" above), and starts motionEye,
 4. waits for the web UI,
 5. runs `motioneye-notify-heal` if installed (a new version may rewrite `on_event_start` on first start),
-6. prints the version, the `main.js?v=` cache key and the last minutes of motionEye's warnings,
+6. prints the version, the mode of `relayevent.sh`, the `main.js?v=` cache key and the last minutes of motionEye's warnings,
 7. deletes the wheel from `/tmp`.
 
 `--no-deps` leaves the installed dependencies alone. If dev adds or raises a dependency, install it separately.

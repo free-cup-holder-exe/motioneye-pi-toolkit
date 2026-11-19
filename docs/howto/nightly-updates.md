@@ -120,7 +120,7 @@ Then check again. Do not assume it worked. If packages are still listed (for exa
 
 ### If logrotate fails every day
 
-If `/var/log/motion` is group-writable (mode 775), logrotate refuses to work and `logrotate.service` fails every day. Nothing gets rotated. Fix:
+If `/var/log/motion` is group-writable (mode 775), logrotate refuses to work and `logrotate.service` fails every day. Nothing gets rotated. The motion 4.7.1 package from Motion's GitHub releases, which motionEye's installer fetches on Raspberry Pi OS 13, creates the folder that way. Fix:
 
 ```sh
 stat -c '%a %U:%G' /var/log/motion

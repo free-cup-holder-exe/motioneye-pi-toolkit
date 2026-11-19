@@ -93,7 +93,7 @@ Investigations:
 
 ## Tested with
 
-Raspberry Pi OS 13 (Trixie), Python 3.13, motion 4.7.x, motionEye 0.44.0 and the 0.45.0 development builds, Picamera2 from the Raspberry Pi OS packages, and OV5647 and IMX219 camera modules.
+Raspberry Pi OS 13 (Trixie) with kernel 6.18, Python 3.13, motion 4.7.x, motionEye 0.44.0 and the 0.45.0 development builds, Picamera2 0.3.39 with libcamera 0.8 from the Raspberry Pi OS packages, and OV5647 and IMX219 camera modules. In November 2026 the installers also set up a Pi 4 from a fresh Raspberry Pi OS 13 Lite install, with motionEye in a venv as motionEye's README describes.
 
 ## Before you use anything
 
